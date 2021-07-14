@@ -8,8 +8,6 @@ from random import random
 
 from matplotlib import pyplot as plt
 from mpl_toolkits.axes_grid1.axes_divider import make_axes_locatable
-from mpl_toolkits.axes_grid1.colorbar import colorbar
-from numpy.core.fromnumeric import var
 
 class Statistics:
     def __init__(self, simulator, ensemble_flag=False):
@@ -34,17 +32,17 @@ class Statistics:
         axs[0].set_title("Mean")
         ax_divider = make_axes_locatable(axs[0])
         ax_cb = ax_divider.append_axes("bottom", size="10%", pad="20%")
-        colorbar(fig0, cax=ax_cb, orientation="horizontal")
+        plt.colorbar(fig0, cax=ax_cb, orientation="horizontal")
 
         var = np.reshape(self.var, (self.simulator.grid.ny,self.simulator.grid.nx))
         fig1 = axs[1].imshow(var, origin = "lower")
         axs[1].set_title("Variance")
         ax_divider = make_axes_locatable(axs[1])
         ax_cb = ax_divider.append_axes("bottom", size="10%", pad="20%")
-        colorbar(fig1, cax=ax_cb, orientation="horizontal")
+        plt.colorbar(fig1, cax=ax_cb, orientation="horizontal")
 
         fig2 = axs[2].imshow(self.cov)
         axs[2].set_title("Covariance Matrix")
         ax_divider = make_axes_locatable(axs[2])
         ax_cb = ax_divider.append_axes("bottom", size="10%", pad="20%")
-        colorbar(fig2, cax=ax_cb, orientation="horizontal")
+        plt.colorbar(fig2, cax=ax_cb, orientation="horizontal")
