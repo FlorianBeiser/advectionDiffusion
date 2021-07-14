@@ -37,3 +37,9 @@ class Observation:
 
     def noise(self, noise_level):
         self.noise = np.diag(np.repeat(noise_level, self.N_y))
+
+    
+    def load_observations(self, fname):
+        self.obses = np.loadtxt(fname)
+        self.N_obs = self.obses.shape[0]
+        assert self.obses.shape[1] == self.N_y, "Wrong dimensions!"
