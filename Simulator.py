@@ -24,6 +24,7 @@ class Grid:
         self.metric_y = np.array([[y for x in self.x_grid]for y in self.y_grid])
 
         #Creating a distance matrix
+        #FIXME: RESPECT PERIODIC BOUNDARY CONDITIONS!!!
         df = pd.DataFrame()
         df['east'] = np.reshape(self.metric_x, -1)
         df['north'] = np.reshape(self.metric_y, -1)
