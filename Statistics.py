@@ -12,24 +12,12 @@ from mpl_toolkits.axes_grid1.colorbar import colorbar
 from numpy.core.fromnumeric import var
 
 class Statistics:
-    def __init__(self, simulator, phi, ensemble_flag=False):
+    def __init__(self, simulator, ensemble_flag=False):
         self.simulator = simulator
-        self.mean, self.var, self.cov = self.prior(phi)
-
-    def prior(self, phi):
-        """
-        Constructing a Matern-type covariance prior with Matern-parameter phi
-        """
-        mean = np.arange(3,9,6/self.simulator.grid.N_x)
-        var  = np.arange(4,7,3/self.simulator.grid.N_x) + random()
-
-        cov = np.copy(self.simulator.grid.H)
-        R = (1+phi*cov)*np.exp(-phi*cov) 
-        for i in range(self.simulator.grid.N_x):
-            for j in range(self.simulator.grid.N_x):
-                    cov[i][j] = np.sqrt(var[i])*np.sqrt(var[j])*R[i][j]
-
-        return mean, var, cov
+        print("Please remember to set priors!")
+        self.mean = np.zeros([self.simulator.grid.N_x])
+        self.var  = np.zeros([self.simulator.grid.N_x])
+        self.cov  = np.zeros([self.simulator.grid.N_x,self.simulator.grid.N_x])
 
 
     def set(self, mean, cov):
