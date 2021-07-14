@@ -35,7 +35,7 @@ class Grid:
 
 
 class Simulator:
-    def __init__(self, grid, D=0.05, v=np.array([0.5,0.1]), zeta=-0.0001, dt=0.01, noise=0.1):
+    def __init__(self, grid, D=0.05, v=[0.5,0.1], zeta=-0.0001, dt=0.01, noise=0.1):
         """
         D - diffusion parameter
         v = np.array([v_x,v_y]) - advection 
@@ -47,21 +47,24 @@ class Simulator:
 
     @staticmethod
     def _neighborsDerivatives(i,ne,N):
+        """
+        Periodic boundary conditions
+        """
         #(under,left,right,over)
         jumps = np.array((-ne, -1, 1, ne))
         
         #under
         if((i - ne) < 0):
-            jumps[0]  = ne
+            jumps[0]  = N - ne
         #over
         if((i + ne) > N-1):
-            jumps[3] = -ne
+            jumps[3] = ne - N 
         #left
         if((i % ne) == 0):
-            jumps[1] = 1
+            jumps[1] = ne-1
         #right
         if((i % ne) == ne-1):
-            jumps[2] = -1
+            jumps[2] = -(ne-1)
     
         return(jumps+i)
 
@@ -73,7 +76,6 @@ class Simulator:
         zeta = np.repeat(zeta, N)
         dx = self.grid.dx
         dy = self.grid.dy
-        #FIXME: No separate dx and dy, but derived from self.grid!
         
         diag_const = zeta -2*D/(dx**2) -2*D/(dy**2)  # main
         diag_minus_1 = -(-ve/(2*dx))+ D/(dx**2)  #left

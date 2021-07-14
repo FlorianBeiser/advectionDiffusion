@@ -46,3 +46,9 @@ class Statistics:
         ax_divider = make_axes_locatable(axs[2])
         ax_cb = ax_divider.append_axes("bottom", size="10%", pad="20%")
         plt.colorbar(fig2, cax=ax_cb, orientation="horizontal")
+
+
+    def propagate(self, nt):
+        for t in range(nt):
+            self.mean, self.cov = self.simulator.forecast(self.mean, self.cov)
+
