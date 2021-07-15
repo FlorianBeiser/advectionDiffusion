@@ -5,8 +5,6 @@ and the actual model propagation.
 """
 
 import numpy as np
-import pandas as pd
-from scipy.spatial import distance_matrix
 
 class Grid:
     """Grid for the forward model"""

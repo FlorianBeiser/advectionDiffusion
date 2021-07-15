@@ -5,12 +5,13 @@ Kalman filter update for advection diffusion example.
 import numpy as np
 
 class Kalman:
-    def __init__(self, simulator, observation, statistics):
+    def __init__(self, statistics, observation):
         self.statistics = statistics
 
-        #self.M = simulator.M
-        self.epsilon = simulator.noise
+        # Model error cov matrix
+        self.epsilon = self.statistics.simulator.noise
         
+        # Observation and obs error cov matrices
         self.H = observation.H
         self.tau = observation.noise
 
