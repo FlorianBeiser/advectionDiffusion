@@ -8,7 +8,7 @@ class Kalman:
     def __init__(self, simulator, observation, statistics):
         self.statistics = statistics
 
-        self.M = simulator.M
+        #self.M = simulator.M
         self.epsilon = simulator.noise
         
         self.H = observation.H

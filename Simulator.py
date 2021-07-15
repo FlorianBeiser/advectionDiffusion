@@ -18,20 +18,36 @@ class Grid:
         self.dx = dx
         self.dy = dy
 
+        self.xdim = self.dx*self.nx
+        self.ydim = self.dy*self.ny
+
         self.x_grid = np.arange(0,self.nx) * self.dx
         self.y_grid = np.arange(0,self.ny) * self.dy
-        self.metric_x = np.array([[x for x in self.x_grid]for y in self.y_grid])
-        self.metric_y = np.array([[y for x in self.x_grid]for y in self.y_grid])
+        self.xx, self.yy = np.meshgrid(self.x_grid, self.y_grid)
 
-        #Creating a distance matrix
-        #FIXME: RESPECT PERIODIC BOUNDARY CONDITIONS!!!
-        df = pd.DataFrame()
-        df['east'] = np.reshape(self.metric_x, -1)
-        df['north'] = np.reshape(self.metric_y, -1)
-        self.dist_mat = distance_matrix(df.values, df.values)
+        self.xy = np.column_stack( (np.reshape(self.yy, self.N_x),
+                                    np.reshape(self.xx, self.N_x)) )[:,[1,0]]
 
-
-
+        self.dist_mat = np.eye(self.N_x)
+        for i in range(self.N_x):
+            dist_nn = np.linalg.norm(self.xy - self.xy[i], axis=1)
+            dist_nu = np.linalg.norm(self.xy - (self.xy[i] + np.array([0, self.ydim])), axis=1)
+            dist_nd = np.linalg.norm(self.xy - (self.xy[i] + np.array([0,-self.ydim])), axis=1)
+            dist_ln = np.linalg.norm(self.xy - (self.xy[i] + np.array([-self.xdim,0])), axis=1)
+            dist_rn = np.linalg.norm(self.xy - (self.xy[i] + np.array([ self.xdim,0])), axis=1)
+            dist_ld = np.linalg.norm(self.xy - (self.xy[i] + np.array([-self.xdim,-self.ydim])), axis=1)
+            dist_lu = np.linalg.norm(self.xy - (self.xy[i] + np.array([-self.xdim, self.ydim])), axis=1)
+            dist_ru = np.linalg.norm(self.xy - (self.xy[i] + np.array([ self.xdim, self.ydim])), axis=1)
+            dist_rd = np.linalg.norm(self.xy - (self.xy[i] + np.array([ self.xdim,-self.ydim])), axis=1)
+            dist = np.minimum(dist_nn,dist_nu)
+            dist = np.minimum(dist, dist_nd)
+            dist = np.minimum(dist, dist_ln)
+            dist = np.minimum(dist, dist_rn)
+            dist = np.minimum(dist, dist_ld)
+            dist = np.minimum(dist, dist_lu)
+            dist = np.minimum(dist, dist_ru)
+            dist = np.minimum(dist, dist_rd)
+            self.dist_mat[i,:] = dist
 
 
 

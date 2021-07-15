@@ -11,6 +11,7 @@ from mpl_toolkits.axes_grid1.axes_divider import make_axes_locatable
 
 class Statistics:
     def __init__(self, simulator, ensemble_flag=False):
+        """Class for handling the mean and cov throughout times"""
         self.simulator = simulator
         print("Please remember to set priors!")
         self.mean = np.zeros([self.simulator.grid.N_x])
@@ -19,12 +20,14 @@ class Statistics:
 
 
     def set(self, mean, cov):
+        """Setting the member variables from input arguments"""
         self.mean = mean
         self.var = np.diag(cov)
         self.cov = cov
 
 
     def plot(self):
+        """Plotting mean, var, and cov in a unified graphics"""
         fig, axs = plt.subplots(1,3, figsize=(12,4))
 
         mean = np.reshape(self.mean, (self.simulator.grid.ny,self.simulator.grid.nx))
@@ -49,6 +52,12 @@ class Statistics:
 
 
     def propagate(self, nt):
+        """Propagating the model for nt simulator time steps.
+        NOTE: nt simulator steps are 1 model time step 
+        wherefore a distinged (DA) model matrix is constructed"""
+        self.M = np.eye(self.simulator.grid.N_x)
         for t in range(nt):
-            self.mean, self.cov = self.simulator.forecast(self.mean, self.cov)
+            self.M = np.matmul(self.simulator.M, self.M)
+        self.mean = np.matmul(self.M, self.mean)
+        self.cov = np.matmul(self.M, np.matmul(self.cov, self.M.transpose())) + self.simulator.noise
 
