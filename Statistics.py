@@ -2,9 +2,7 @@
 Mean and Variance for the advection diffusion example
 """
 
-from Simulator import Simulator
-from Ensemble import Ensemble
-
+import Ensemble
 
 import numpy as np
 

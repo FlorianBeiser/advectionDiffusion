@@ -28,24 +28,7 @@ class Grid:
 
         self.dist_mat = np.eye(self.N_x)
         for i in range(self.N_x):
-            dist_nn = np.linalg.norm(self.xy - self.xy[i], axis=1)
-            dist_nu = np.linalg.norm(self.xy - (self.xy[i] + np.array([0, self.ydim])), axis=1)
-            dist_nd = np.linalg.norm(self.xy - (self.xy[i] + np.array([0,-self.ydim])), axis=1)
-            dist_ln = np.linalg.norm(self.xy - (self.xy[i] + np.array([-self.xdim,0])), axis=1)
-            dist_rn = np.linalg.norm(self.xy - (self.xy[i] + np.array([ self.xdim,0])), axis=1)
-            dist_ld = np.linalg.norm(self.xy - (self.xy[i] + np.array([-self.xdim,-self.ydim])), axis=1)
-            dist_lu = np.linalg.norm(self.xy - (self.xy[i] + np.array([-self.xdim, self.ydim])), axis=1)
-            dist_ru = np.linalg.norm(self.xy - (self.xy[i] + np.array([ self.xdim, self.ydim])), axis=1)
-            dist_rd = np.linalg.norm(self.xy - (self.xy[i] + np.array([ self.xdim,-self.ydim])), axis=1)
-            dist = np.minimum(dist_nn,dist_nu)
-            dist = np.minimum(dist, dist_nd)
-            dist = np.minimum(dist, dist_ln)
-            dist = np.minimum(dist, dist_rn)
-            dist = np.minimum(dist, dist_ld)
-            dist = np.minimum(dist, dist_lu)
-            dist = np.minimum(dist, dist_ru)
-            dist = np.minimum(dist, dist_rd)
-            self.dist_mat[i,:] = dist
+            self.dist_mat[i,:] = np.linalg.norm(self.xy - self.xy[i], axis=1)
 
 
 
@@ -70,16 +53,16 @@ class Simulator:
         
         #under
         if((i - ne) < 0):
-            jumps[0]  = N - ne
+            jumps[0]  = ne
         #over
         if((i + ne) > N-1):
-            jumps[3] = ne - N 
+            jumps[3] = -ne
         #left
         if((i % ne) == 0):
-            jumps[1] = ne-1
+            jumps[1] = 1
         #right
         if((i % ne) == ne-1):
-            jumps[2] = -(ne-1)
+            jumps[2] = -1
     
         return(jumps+i)
 
