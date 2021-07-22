@@ -23,6 +23,7 @@ class Statistics:
         else:
             self.ensemble = None
 
+
     def set(self, mean, cov):
         """Setting the member variables from input arguments"""
         self.mean = mean
@@ -64,6 +65,10 @@ class Statistics:
         self.M = np.eye(self.simulator.grid.N_x)
         for t in range(nt):
             self.M = np.matmul(self.simulator.M, self.M)
-        self.mean = np.matmul(self.M, self.mean)
-        self.cov = np.matmul(self.M, np.matmul(self.cov, self.M.transpose())) + self.simulator.noise
 
+        if self.ensemble is None:
+            self.mean = np.matmul(self.M, self.mean)
+            self.cov = np.matmul(self.M, np.matmul(self.cov, self.M.transpose())) + self.simulator.noise
+        else:
+            self.ensemble.set( np.matmul(self.M, self.ensemble.ensemble))
+            self.mean = np.average(self.ensemble.ensemble, axis = 1)
