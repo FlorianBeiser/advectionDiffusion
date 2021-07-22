@@ -21,6 +21,14 @@ class Observation:
         self.matrix()
         self.noise(self.noise_level)
 
+
+    def set_indices(self, indices):
+        self.obsidx = indices
+        self.N_y = len(indices)
+        self.matrix()
+        self.noise(self.noise_level)
+
+
     def matrix(self):
         self.H = np.zeros((self.N_y, self.grid.N_x))
         for i in range(self.N_y):
