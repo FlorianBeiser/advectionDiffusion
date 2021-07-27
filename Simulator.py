@@ -5,6 +5,7 @@ and the actual model propagation.
 """
 
 import numpy as np
+from scipy.linalg import circulant 
 
 class Grid:
     """Grid for the forward model"""
@@ -19,33 +20,25 @@ class Grid:
         self.xdim = self.dx*self.nx
         self.ydim = self.dy*self.ny
 
-        self.x_grid = np.arange(0,self.nx) * self.dx
-        self.y_grid = np.arange(0,self.ny) * self.dy
-        self.xx, self.yy = np.meshgrid(self.x_grid, self.y_grid)
+        # Auxiliary matrix for the construction of the circullant distance matrix
+        self.dist_toepitz = np.zeros((self.ny, self.nx))
+        for i in range(self.nx):
+            if i <= self.nx/2:
+                di = i
+            else:
+                di = self.nx - i 
+            
+            for j in range(self.ny):
+                if j <= self.ny/2:
+                    dj = j 
+                else:
+                    dj = self.ny - j 
 
-        self.xy = np.column_stack( (np.reshape(self.yy, self.N_x),
-                                    np.reshape(self.xx, self.N_x)) )[:,[1,0]]
+                Dx = di * self.dx
+                Dy = dj * self.dy
+                self.dist_toepitz[j,i] = np.sqrt(Dx**2 + Dy**2)
 
-        self.dist_mat = np.eye(self.N_x)
-        for i in range(self.N_x):
-            dist_nn = np.linalg.norm(self.xy - self.xy[i], axis=1)
-            dist_nu = np.linalg.norm(self.xy - (self.xy[i] + np.array([0, self.ydim])), axis=1)
-            dist_nd = np.linalg.norm(self.xy - (self.xy[i] + np.array([0,-self.ydim])), axis=1)
-            dist_ln = np.linalg.norm(self.xy - (self.xy[i] + np.array([-self.xdim,0])), axis=1)
-            dist_rn = np.linalg.norm(self.xy - (self.xy[i] + np.array([ self.xdim,0])), axis=1)
-            dist_ld = np.linalg.norm(self.xy - (self.xy[i] + np.array([-self.xdim,-self.ydim])), axis=1)
-            dist_lu = np.linalg.norm(self.xy - (self.xy[i] + np.array([-self.xdim, self.ydim])), axis=1)
-            dist_ru = np.linalg.norm(self.xy - (self.xy[i] + np.array([ self.xdim, self.ydim])), axis=1)
-            dist_rd = np.linalg.norm(self.xy - (self.xy[i] + np.array([ self.xdim,-self.ydim])), axis=1)
-            dist = np.minimum(dist_nn,dist_nu)
-            dist = np.minimum(dist, dist_nd)
-            dist = np.minimum(dist, dist_ln)
-            dist = np.minimum(dist, dist_rn)
-            dist = np.minimum(dist, dist_ld)
-            dist = np.minimum(dist, dist_lu)
-            dist = np.minimum(dist, dist_ru)
-            dist = np.minimum(dist, dist_rd)
-            self.dist_mat[i,:] = dist
+        self.dist_mat = circulant(np.reshape(self.dist_toepitz, self.N_x))
 
 
 
