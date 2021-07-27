@@ -28,7 +28,7 @@ class Ensemble:
 
             xf = np.real(np.fft.fft2(cmf*uif))
 
-            self.ensemble[:,e] = np.reshape(xf, self.simulator.grid.N_x)
+            self.ensemble[:,e] = mean + np.reshape(var_mesh, self.simulator.grid.N_x)*np.reshape(xf, self.simulator.grid.N_x)
 
     def set(self, ensemble):
         self.ensemble = ensemble
