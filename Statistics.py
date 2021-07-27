@@ -2,9 +2,7 @@
 Mean and Variance for the advection diffusion example
 """
 
-from Simulator import Simulator
-from Ensemble import Ensemble
-
+import Ensemble
 
 import numpy as np
 
@@ -25,13 +23,14 @@ class Statistics:
         else:
             self.ensemble = None
 
-    def set(self, mean, cov):
+
+    def set(self, mean, cov, var_mesh=None):
         """Setting the member variables from input arguments"""
         self.mean = mean
         self.var = np.diag(cov)
         self.cov = cov
         if self.ensemble is not None:
-            self.ensemble.initialize(mean, cov)
+            self.ensemble.initialize(mean, cov, var_mesh)
 
 
     def plot(self):
@@ -66,6 +65,10 @@ class Statistics:
         self.M = np.eye(self.simulator.grid.N_x)
         for t in range(nt):
             self.M = np.matmul(self.simulator.M, self.M)
-        self.mean = np.matmul(self.M, self.mean)
-        self.cov = np.matmul(self.M, np.matmul(self.cov, self.M.transpose())) + self.simulator.noise
 
+        if self.ensemble is None:
+            self.mean = np.matmul(self.M, self.mean)
+            self.cov = np.matmul(self.M, np.matmul(self.cov, self.M.transpose())) + self.simulator.noise
+        else:
+            self.ensemble.set( np.matmul(self.M, self.ensemble.ensemble))
+            self.mean = np.average(self.ensemble.ensemble, axis = 1)
