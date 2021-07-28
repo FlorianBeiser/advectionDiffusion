@@ -7,6 +7,14 @@ class Ensemble:
         self.N_e = N_e
 
     def initialize(self, mean, cov, var_mesh=None):
+        # NOTE: For periodic boundary conditions the covariance matrix 
+        # becomes numerical problems with the semi-positive definiteness.
+        # To avoid negative Eigenvalues a small nugget on the diagonal is added.
+        nugget = 0.1
+
+        self.ensemble 
+
+    def initializeFFT(self, mean, cov, var_mesh=None):
         if var_mesh is None:
             var_mesh = np.ones((self.simulator.grid.ny, self.simulator.grid.nx))
             
