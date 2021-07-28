@@ -2,9 +2,11 @@
 Kalman filter update for advection diffusion example.
 """
 
+from Simulator import Simulator
+from Statistics import Statistics
 import numpy as np
 
-class Kalman:
+class ETKalman:
     def __init__(self, statistics, observation):
         self.statistics = statistics
 
@@ -15,24 +17,33 @@ class Kalman:
         self.H = observation.H
         self.tau = observation.noise
 
-    def filter(self, forecasted_mean, obs, series=None):
+    def filter(self, ensemble, obs, series=None):
 
-        if series is not None:
-            H = self.H[series,:]
+        X_f_mean = np.average(ensemble, axis=1)
+        X_f_pert = ensemble - np.reshape(X_f_mean, (self.statistics.simulator.grid.N_x,1))
 
-            Q = np.matmul(H,np.matmul(forecasted_cov,H.transpose())) + self.tau[series,series]
-            K = np.matmul(forecasted_cov,H.transpose()) / Q
+        Rinv = np.linalg.inv(self.tau)
 
-            updated_mean = forecasted_mean + K * (obs - np.matmul(H,forecasted_mean))
-            updated_covariance = forecasted_cov -  Q * np.outer(K, K)
+        HX_f =  self.H @ ensemble
+        HX_f_mean = np.average(HX_f, axis=1)
+        HX_f_pert = HX_f - np.reshape(HX_f_mean, (len(obs),1))
 
-        else:
-            Q = np.matmul(self.H,np.matmul(forecasted_cov,self.H.transpose())) + self.tau
-            K = np.matmul(forecasted_cov,np.matmul(self.H.transpose(), np.linalg.inv(Q)))
+        D = obs - HX_f_mean
 
-            updated_mean = forecasted_mean + np.matmul(K, (obs - np.matmul(self.H,forecasted_mean)))
-            updated_covariance = forecasted_cov - np.matmul(K,np.matmul(Q,K.transpose()))
-        
-        self.statistics.set(updated_mean, updated_covariance)
+        A1 = (self.statistics.ensemble.N_e-1)*np.eye(self.statistics.ensemble.N_e)
+        A2 = np.dot(HX_f_pert.T, np.dot(Rinv, HX_f_pert))
+        A = A1 + A2
+        P = np.linalg.inv(A)
 
-        return updated_mean, updated_covariance
+        K = np.dot(X_f_pert, np.dot(P, np.dot(HX_f_pert.T, Rinv)))
+
+        X_a_mean = X_f_mean + np.dot(K, D)
+        sigma, V = np.linalg.eigh( (self.statistics.ensemble.N_e - 1) * P )
+
+        X_a_pert = np.dot( X_f_pert, np.dot( V, np.dot( np.diag( np.sqrt( np.real(sigma) ) ), V.T )))
+
+        X_a = X_a_pert + np.reshape(X_a_mean, (self.statistics.simulator.grid.N_x,1))
+
+        self.statistics.set_ensemble(X_a)
+
+        return X_a

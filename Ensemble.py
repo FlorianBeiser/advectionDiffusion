@@ -7,11 +7,10 @@ class Ensemble:
         self.simulator = simulator
         self.N_e = N_e
 
-    def initialize(self, mean, cov, var_mesh):
+    def initialize(self, mean, cov, var_mesh, nugget):
         # NOTE: For periodic boundary conditions the covariance matrix 
         # becomes numerical problems with the semi-positive definiteness.
         # To avoid negative Eigenvalues a small nugget on the diagonal is added.
-        nugget = 0.001
 
         self.ensemble = np.random.multivariate_normal(mean, cov + nugget*np.eye(self.simulator.grid.N_x), self.N_e).transpose()
 

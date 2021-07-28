@@ -24,13 +24,27 @@ class Statistics:
             self.ensemble = None
 
 
-    def set(self, mean, cov, var_mesh=None):
+    def ensemble_statistics(self):
+        self.mean = np.average(self.ensemble.ensemble, axis = 1)
+        self.cov = 1/(self.ensemble.N_e-1)*\
+            (self.ensemble.ensemble - np.reshape(self.mean, (self.simulator.grid.N_x,1))) \
+            @ (self.ensemble.ensemble - np.reshape(self.mean, (self.simulator.grid.N_x,1))).transpose()
+        self.var = np.diag(self.cov)
+        
+
+    def set(self, mean, cov, var_mesh=None, nugget=0.01):
         """Setting the member variables from input arguments"""
         self.mean = mean
         self.var = np.diag(cov)
         self.cov = cov
         if self.ensemble is not None:
-            self.ensemble.initialize(mean, cov, var_mesh)
+            self.ensemble.initialize(mean, cov, var_mesh, nugget)
+            self.ensemble_statistics()
+
+
+    def set_ensemble(self, ensemble):
+        self.ensemble.set(ensemble)
+        self.ensemble_statistics()
 
 
     def plot(self, mean=None, var=None, cov=None):
