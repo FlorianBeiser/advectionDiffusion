@@ -1,4 +1,5 @@
   
+from Simulator import Simulator
 import numpy as np
 
 class Ensemble:
@@ -6,13 +7,13 @@ class Ensemble:
         self.simulator = simulator
         self.N_e = N_e
 
-    def initialize(self, mean, cov, var_mesh=None):
+    def initialize(self, mean, cov, var_mesh):
         # NOTE: For periodic boundary conditions the covariance matrix 
         # becomes numerical problems with the semi-positive definiteness.
         # To avoid negative Eigenvalues a small nugget on the diagonal is added.
-        nugget = 0.1
+        nugget = 0.001
 
-        self.ensemble 
+        self.ensemble = np.random.multivariate_normal(mean, cov + nugget*np.eye(self.simulator.grid.N_x), self.N_e).transpose()
 
     def initializeFFT(self, mean, cov, var_mesh=None):
         if var_mesh is None:
