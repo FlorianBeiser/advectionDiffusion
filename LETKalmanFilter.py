@@ -206,6 +206,10 @@ class LETKalman:
 
         X_a = np.zeros_like(X_f)
 
+        HX_f =  self.H @ ensemble
+        HX_f_mean = np.average(HX_f, axis=1)
+        HX_f_pert = HX_f - np.reshape(HX_f_mean, (len(obs),1))
+
         # Prepare local ETKF analysis
         N_x_local = self.W_loc.shape[0]*self.W_loc.shape[1] 
 
@@ -234,17 +238,31 @@ class LETKalman:
             X_f_loc = X_f_loc.T
             X_f_loc_pert = X_f_loc_pert.T
 
+            # Local observation
+            HX_f_loc_mean = HX_f_mean[d]
+            HX_f_loc_pert = HX_f_pert[d,:]
+
+            # LETKF
+            Rinv = 1/self.tau[d,d]
+
+            y_loc = obs[d]
+            D = y_loc - HX_f_loc_mean
+
+            A1 = (N_e-1)*np.eye(N_e)
+            A2 = np.dot(HX_f_loc_pert.T, np.dot(Rinv, HX_f_loc_pert))
+            A = A1 + A2
+            P = np.linalg.inv(A)
+
+            K = np.dot(X_f_loc_pert, np.dot(P, np.dot(HX_f_loc_pert.T, Rinv)))
+
+            X_a_loc_mean = X_f_loc_mean + np.dot(K, D)
+
+            sigma, V = np.linalg.eigh( (N_e - 1) * P )
+            X_a_loc_pert = np.dot( X_f_loc_pert, np.dot( V, np.dot( np.diag( np.sqrt( np.real(sigma) ) ), V.T )))
+
+            X_a_loc = np.reshape(X_a_loc_mean,(N_x_local,1)) + X_a_loc_pert
 
 
-
-
-            # DEBUG BRIDGE!!!!
-            X_a_loc = X_f_loc
-            # DEBUG BRIDGE (end)
-
-
-
-            
             # Calculate weighted local analysis
             weighted_X_a_loc = X_a_loc[:,:]*(np.tile(self.W_loc.flatten().T, (N_e, 1)).T)
             # Here, we use np.tile(W_loc.flatten().T, (N_e_active, 1)).T to repeat W_loc as column vector N_e_active times 
@@ -263,32 +281,8 @@ class LETKalman:
         for e in range(N_e):
             X_new[e] = self.W_forecast*X_f[e] + X_a[e]
 
+        # Upload
         X_new = np.reshape(X_new, (N_e, nx*ny)).T
+        self.statistics.set_ensemble(X_new)
 
-        """
-        Rinv = np.linalg.inv(self.tau)
-
-        HX_f =  self.H @ ensemble
-        HX_f_mean = np.average(HX_f, axis=1)
-        HX_f_pert = HX_f - np.reshape(HX_f_mean, (len(obs),1))
-
-        D = obs - HX_f_mean
-
-        A1 = (self.statistics.ensemble.N_e-1)*np.eye(self.statistics.ensemble.N_e)
-        A2 = np.dot(HX_f_pert.T, np.dot(Rinv, HX_f_pert))
-        A = A1 + A2
-        P = np.linalg.inv(A)
-
-        K = np.dot(X_f_pert, np.dot(P, np.dot(HX_f_pert.T, Rinv)))
-
-        X_a_mean = X_f_mean + np.dot(K, D)
-        sigma, V = np.linalg.eigh( (self.statistics.ensemble.N_e - 1) * P )
-
-        X_a_pert = np.dot( X_f_pert, np.dot( V, np.dot( np.diag( np.sqrt( np.real(sigma) ) ), V.T )))
-
-        X_a = X_a_pert + np.reshape(X_a_mean, (self.statistics.simulator.grid.N_x,1))
-
-        self.statistics.set_ensemble(X_a)
-
-        return X_a
-        """
+        return X_new
