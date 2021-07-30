@@ -192,37 +192,80 @@ class LETKalman:
 
     def filter(self, ensemble, obs, series=None):
 
+        # Bookkeeping
+        nx = self.statistics.simulator.grid.nx
+        ny = self.statistics.simulator.grid.ny
         N_e = ensemble.shape[1]
 
-        X_f_mean = np.average(ensemble, axis=1)
-        X_f_pert = ensemble - np.reshape(X_f_mean, (self.statistics.simulator.grid.N_x,1))
+        X_f = np.zeros((N_e, ny, nx))
+        for e in range(X_f.shape[0]):
+            X_f[e] = np.reshape(ensemble[:,e], (ny, nx))
 
-        X_a = np.zeros_like(ensemble)
+        X_f_mean = np.average(X_f, axis=0)
+        X_f_pert = X_f - X_f_mean
+
+        X_a = np.zeros_like(X_f)
 
         # Prepare local ETKF analysis
         N_x_local = self.W_loc.shape[0]*self.W_loc.shape[1] 
-        X_f_loc_tmp = np.zeros((N_e, N_x_local))
-        X_f_loc_pert_tmp = np.zeros((N_e, 1, N_x_local))
-        X_f_loc_mean_tmp = np.zeros((1, N_x_local))
-            
-        X_f_loc = np.zeros((N_x_local, N_e))
-        X_f_loc_pert = np.zeros((N_x_local, N_e))
 
+        X_f_loc = np.zeros((N_e, N_x_local))
+        X_f_loc_pert = np.zeros((N_e, N_x_local))
+        X_f_loc_mean = np.zeros((N_x_local))
 
         # Loop over all d
         for d in range(self.N_y):
     
             L, xroll, yroll = self.all_Ls[d], self.all_xrolls[d], self.all_yrolls[d]
 
+            X_f_loc[:,:] = X_f[:,L]   
+            X_f_loc_pert[:,:] = X_f_pert[:,L]
+            X_f_loc_mean[:] = X_f_mean[L]
+
+            if not (xroll == 0 and yroll == 0):
+                rolling_shape = (N_e, self.W_loc.shape[0], self.W_loc.shape[1]) # roll around axis 2 and 3
+                X_f_loc[:,:] = np.roll(np.roll(X_f_loc.reshape(rolling_shape), shift=-yroll, axis=1 ), shift=-xroll, axis=2).reshape((N_e, N_x_local))
+                X_f_loc_pert[:,:] = np.roll(np.roll(X_f_loc_pert.reshape(rolling_shape), shift=-yroll, axis=1 ), shift=-xroll, axis=2).reshape((N_e, N_x_local))
+
+                mean_rolling_shape = (self.W_loc.shape[0], self.W_loc.shape[1]) # roll around axis 1 and 2
+                X_f_loc_mean[:] = np.roll(np.roll(X_f_loc_mean.reshape(mean_rolling_shape), shift=-yroll, axis=0 ), shift=-xroll, axis=1).reshape((N_x_local))
+
+            # Adapting LETKF dimensionalisation
+            X_f_loc = X_f_loc.T
+            X_f_loc_pert = X_f_loc_pert.T
 
 
 
 
 
+            # DEBUG BRIDGE!!!!
+            X_a_loc = X_f_loc
+            # DEBUG BRIDGE (end)
 
 
 
+            
+            # Calculate weighted local analysis
+            weighted_X_a_loc = X_a_loc[:,:]*(np.tile(self.W_loc.flatten().T, (N_e, 1)).T)
+            # Here, we use np.tile(W_loc.flatten().T, (N_e_active, 1)).T to repeat W_loc as column vector N_e_active times 
 
+            if not (xroll == 0 and yroll == 0):
+                weighted_X_a_loc = np.roll(np.roll(weighted_X_a_loc[:,:].reshape((self.W_loc.shape[0], self.W_loc.shape[1], N_e)), 
+                                                                                shift=yroll, axis=0 ), 
+                                                shift=xroll, axis=1)
+
+            X_a[:,L] += weighted_X_a_loc.reshape(self.W_loc.shape[0]*self.W_loc.shape[1], N_e).T
+        # (end loop over all d)
+
+
+        # COMBINING (the already weighted) ANALYSIS WITH THE FORECAST
+        X_new = np.zeros_like(X_f)
+        for e in range(N_e):
+            X_new[e] = self.W_forecast*X_f[e] + X_a[e]
+
+        X_new = np.reshape(X_new, (N_e, nx*ny)).T
+
+        """
         Rinv = np.linalg.inv(self.tau)
 
         HX_f =  self.H @ ensemble
@@ -248,3 +291,4 @@ class LETKalman:
         self.statistics.set_ensemble(X_a)
 
         return X_a
+        """
