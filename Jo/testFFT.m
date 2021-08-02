@@ -14,7 +14,7 @@ nv=[n1;n2];
 n=n1*n2;
 
 sig=1;  % standard deviation
-nu=50;  % Range in m
+nu=20;  % Range in m
 ksi=0.1; % nugget
 
 
@@ -45,10 +45,10 @@ uv=randn(n,1);
 u=zeros(n1,n2);
 u=vec2mat(uv,n1);
 
-xf=real(fft2(cmf.*ifft2(u))); % Spatial part, Fourier domain
+xf=real(fft2(sqrt(cmf).*ifft2(u))); % Spatial part, Fourier domain
 xfv=mat2vec(xf);
 
-xf2=Sigma*uv;
+xf2=chol(Sigma)'*uv;
 
 figure(2);
 clf;

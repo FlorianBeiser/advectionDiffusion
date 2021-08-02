@@ -21,16 +21,25 @@ class Grid:
         self.xdim = self.dx*self.nx
         self.ydim = self.dy*self.ny
 
-        self.x_grid = np.arange(0,self.nx) * self.dx
-        self.y_grid = np.arange(0,self.ny) * self.dy
-        self.xx, self.yy = np.meshgrid(self.x_grid, self.y_grid)
+        # Auxiliary matrix for the construction of the circullant distance matrix
+        self.dist_toepitz = np.zeros((self.ny, self.nx))
+        for i in range(self.nx):
+            if i <= self.nx/2:
+                di = i
+            else:
+                di = self.nx - i 
+            
+            for j in range(self.ny):
+                if j <= self.ny/2:
+                    dj = j 
+                else:
+                    dj = self.ny - j 
 
-        self.xy = np.column_stack( (np.reshape(self.yy, self.N_x),
-                                    np.reshape(self.xx, self.N_x)) )[:,[1,0]]
+                Dx = di * self.dx
+                Dy = dj * self.dy
+                self.dist_toepitz[j,i] = np.sqrt(Dx**2 + Dy**2)
 
-        self.dist_mat = np.eye(self.N_x)
-        for i in range(self.N_x):
-            self.dist_mat[i,:] = np.linalg.norm(self.xy - self.xy[i], axis=1)
+        self.dist_mat = circulant(np.reshape(self.dist_toepitz, self.N_x))
 
 
 
@@ -65,16 +74,16 @@ class Simulator:
         
         #under
         if((i - ne) < 0):
-            jumps[0]  = ne
+            jumps[0]  = N - ne
         #over
         if((i + ne) > N-1):
-            jumps[3] = -ne
+            jumps[3] = ne - N 
         #left
         if((i % ne) == 0):
-            jumps[1] = 1
+            jumps[1] = ne-1
         #right
         if((i % ne) == ne-1):
-            jumps[2] = -1
+            jumps[2] = -(ne-1)
     
         return(jumps+i)
 
