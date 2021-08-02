@@ -44,8 +44,11 @@ class LETKalman:
 
         self.W_loc = LETKalman.getLocalWeightShape(scale_r, dx, dy, nx, ny)
 
-        self.W_analysis = LETKalman.getCombinedWeights(self.observation_positions, scale_r, dx, dy, nx, ny, self.W_loc)
+        W_combined = LETKalman.getCombinedWeights(self.observation_positions, scale_r, dx, dy, nx, ny, self.W_loc)
 
+        W_scale    = np.maximum(W_combined,1)
+
+        self.W_analysis = W_combined/W_scale
         self.W_forecast = np.ones_like(self.W_analysis) - self.W_analysis 
 
     @staticmethod
