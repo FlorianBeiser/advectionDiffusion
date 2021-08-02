@@ -75,6 +75,8 @@ class Statistics:
         ax_cb = ax_divider.append_axes("bottom", size="10%", pad="20%")
         plt.colorbar(fig2, cax=ax_cb, orientation="horizontal")
 
+        plt.show()
+
 
     def propagate(self, nt):
         """Propagating the model for nt simulator time steps.
