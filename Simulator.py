@@ -5,6 +5,8 @@ and the actual model propagation.
 """
 
 import numpy as np
+import datetime
+from scipy.linalg import circulant 
 
 class Grid:
     """Grid for the forward model"""
@@ -33,7 +35,7 @@ class Grid:
 
 
 class Simulator:
-    def __init__(self, grid, D=0.05, v=[0.5,0.1], zeta=-0.0001, dt=0.01, noise=0.1):
+    def __init__(self, grid, D=0.05, v=[0.5,0.1], zeta=-0.0001, dt=0.01, noise_level=0.1):
         """
         D - diffusion parameter
         v = np.array([v_x,v_y]) - advection 
@@ -41,7 +43,17 @@ class Simulator:
         """
         self.grid = grid
         self.M = self.matrix(D, v, zeta, dt)
-        self.noise = self.noise(noise)
+        self.noise = self.noise(noise_level)
+
+        self.D = D 
+        self.v = v
+        self.zeta = zeta
+        self.dt = dt
+
+        self.noise_level = noise_level
+
+        self.timestamp = ""
+
 
     @staticmethod
     def _neighborsDerivatives(i,ne,N):
@@ -98,20 +110,71 @@ class Simulator:
         return (np.diag(np.ones(N)) + dt*M)
 
 
-    def forecast(self, mean, cov):
-        forecasted_mean = np.matmul(self.M, mean)
-        forecasted_covariance = np.matmul(self.M,np.matmul(cov, self.M.transpose())) + self.noise
+    def propagate(self, mean, cov=None, steps=1):
+        for t in range(steps):
+            mean = np.matmul(self.M, mean)
+            if cov is not None:
+                cov = np.matmul(self.M,np.matmul(cov, self.M.transpose())) + self.noise
 
-        return(forecasted_mean, forecasted_covariance)
-                
+        if cov is not None:
+            return (mean, cov)
+        else:
+            return mean
+
     
-    def noise(self, noise):
-        return np.diag(noise*np.ones(self.grid.N_x))
+    def noise(self, noise_level):
+        return np.diag(noise_level*np.ones(self.grid.N_x))
 
 
+    def to_file(self):
+        self.timestamp = datetime.datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
+        file = "truth_" + self.timestamp
+
+        f = open(file, "x")
+        f.write("--------------------------------------------\n")
+        f.write("Truth for the advection diffusion experiment\n")
+        f.write("--------------------------------------------\n")
+        f.write("The grid:\n")
+        f.write("grid.nx = " + str(self.grid.nx) + "\n")
+        f.write("grid.ny = " + str(self.grid.ny) + "\n")
+        f.write("grid.dx = " + str(self.grid.dx) + "\n")
+        f.write("grid.dy = " + str(self.grid.dy) + "\n")
+        f.write("--------------------------------------------\n")
+        f.write("The parameters for the advection diffusion equation:\n")
+        f.write("simulator.D = " + str(self.D) + "\n")
+        f.write("simulator.v = " + str(self.v) + "\n")
+        f.write("simulator.zeta = " + str(self.zeta) + "\n")
+        f.write("simulator.dt = " + str(self.dt) + "\n")
+        f.write("simulator.noise_level = " + str(self.noise_level) + "\n")
+        f.close()
 
 
+def from_file(timestamp):
+    f = open("truth_"+timestamp, "r")
+    f.readline()
+    f.readline()
+    f.readline()
+    f.readline()
+    nx = int(f.readline()[10:-1])
+    ny = int(f.readline()[10:-1])
+    dx = float(f.readline()[10:-1])
+    dy = float(f.readline()[10:-1])
+    
+    grid = Grid(nx,ny,dx,dy)
 
+    f.readline()
+    f.readline()
+    D = float(f.readline()[14:-1])
+    v = f.readline()[14:-1].strip('][').split(', ')
+    v[0] = float(v[0])
+    v[1] = float(v[1])
+    zeta = float(f.readline()[17:-1])
+    dt = float(f.readline()[15:-1])
+    noise_level = float(f.readline()[24:-1])
 
+    simulator = Simulator(grid, D, v, zeta, dt, noise_level)
+    simulator.timestamp = timestamp
 
+    f.close()
 
+    return grid, simulator

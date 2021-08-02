@@ -5,6 +5,7 @@ class Observation:
     Handling observation values and construction observation operator"""
     def __init__(self, simulator, noise_level=1):
         self.grid = simulator.grid
+        self.timestamp = simulator.timestamp
         self.noise_level = noise_level
 
         self.N_obs = 0
@@ -43,3 +44,35 @@ class Observation:
         self.obses = np.loadtxt(fname)
         self.N_obs = self.obses.shape[0]
         assert self.obses.shape[1] == self.N_y, "Wrong dimensions!"
+
+    
+    def to_file(self):
+        
+        np.savetxt("observation_positions_" + self.timestamp + ".csv", self.positions)
+        
+        np.savetxt("observation_values_" + self.timestamp + ".csv", np.reshape(self.obses,(self.N_obs, self.N_y) ))
+        
+        f = open("observation_properties_"+self.timestamp, "x")
+        f.write("--------------------------------------------\n")
+        f.write("Properties of the observations--------------\n")
+        f.write("--------------------------------------------\n")
+        f.write("observation.noise_level = " + str(self.noise_level) + "\n")
+        f.close()
+
+
+def from_file(simulator):
+    
+    f = open("observation_properties_"+simulator.timestamp, "r")
+    f.readline()
+    f.readline()
+    f.readline()
+    noise_level = float(f.readline()[26:-1])
+    f.close()
+
+    observation = Observation(simulator, noise_level)
+
+    observation.set_positions(np.loadtxt("observation_positions_"+simulator.timestamp+".csv"))
+
+    observation.load_observations("observation_values_"+simulator.timestamp+".csv")
+
+    return observation
