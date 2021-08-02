@@ -44,8 +44,9 @@ class LETKalman:
 
         self.W_loc = LETKalman.getLocalWeightShape(scale_r, dx, dy, nx, ny)
 
-        self.W_forecast = LETKalman.getCombinedWeights(self.observation_positions, scale_r, dx, dy, nx, ny, self.W_loc)
+        self.W_analysis = LETKalman.getCombinedWeights(self.observation_positions, scale_r, dx, dy, nx, ny, self.W_loc)
 
+        self.W_forecast = np.ones_like(self.W_analysis) - self.W_analysis 
 
     @staticmethod
     def getLocalIndices(obs_loc, scale_r, dx, dy, nx, ny):
@@ -213,30 +214,31 @@ class LETKalman:
         # Prepare local ETKF analysis
         N_x_local = self.W_loc.shape[0]*self.W_loc.shape[1] 
 
-        X_f_loc = np.zeros((N_e, N_x_local))
-        X_f_loc_pert = np.zeros((N_e, N_x_local))
-        X_f_loc_mean = np.zeros((N_x_local))
+        X_f_loc_tmp = np.zeros((N_e, N_x_local))
+        X_f_loc_pert_tmp = np.zeros((N_e, N_x_local))
+        X_f_loc_mean_tmp = np.zeros((N_x_local))
 
         # Loop over all d
         for d in range(self.N_y):
     
             L, xroll, yroll = self.all_Ls[d], self.all_xrolls[d], self.all_yrolls[d]
 
-            X_f_loc[:,:] = X_f[:,L]   
-            X_f_loc_pert[:,:] = X_f_pert[:,L]
-            X_f_loc_mean[:] = X_f_mean[L]
+            X_f_loc_tmp[:,:] = X_f[:,L]   
+            X_f_loc_pert_tmp[:,:] = X_f_pert[:,L]
+            X_f_loc_mean_tmp[:] = X_f_mean[L]
 
             if not (xroll == 0 and yroll == 0):
                 rolling_shape = (N_e, self.W_loc.shape[0], self.W_loc.shape[1]) # roll around axis 2 and 3
-                X_f_loc[:,:] = np.roll(np.roll(X_f_loc.reshape(rolling_shape), shift=-yroll, axis=1 ), shift=-xroll, axis=2).reshape((N_e, N_x_local))
-                X_f_loc_pert[:,:] = np.roll(np.roll(X_f_loc_pert.reshape(rolling_shape), shift=-yroll, axis=1 ), shift=-xroll, axis=2).reshape((N_e, N_x_local))
+                X_f_loc_tmp[:,:] = np.roll(np.roll(X_f_loc_tmp.reshape(rolling_shape), shift=-yroll, axis=1 ), shift=-xroll, axis=2).reshape((N_e, N_x_local))
+                X_f_loc_pert_tmp[:,:] = np.roll(np.roll(X_f_loc_pert_tmp.reshape(rolling_shape), shift=-yroll, axis=1 ), shift=-xroll, axis=2).reshape((N_e, N_x_local))
 
                 mean_rolling_shape = (self.W_loc.shape[0], self.W_loc.shape[1]) # roll around axis 1 and 2
-                X_f_loc_mean[:] = np.roll(np.roll(X_f_loc_mean.reshape(mean_rolling_shape), shift=-yroll, axis=0 ), shift=-xroll, axis=1).reshape((N_x_local))
+                X_f_loc_mean_tmp[:] = np.roll(np.roll(X_f_loc_mean_tmp.reshape(mean_rolling_shape), shift=-yroll, axis=0 ), shift=-xroll, axis=1).reshape((N_x_local))
 
             # Adapting LETKF dimensionalisation
-            X_f_loc = X_f_loc.T
-            X_f_loc_pert = X_f_loc_pert.T
+            X_f_loc = X_f_loc_tmp.T
+            X_f_loc_pert = X_f_loc_pert_tmp.T
+            X_f_loc_mean = X_f_loc_mean_tmp.T
 
             # Local observation
             HX_f_loc_mean = HX_f_mean[d]
