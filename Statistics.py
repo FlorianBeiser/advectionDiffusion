@@ -3,6 +3,7 @@ Mean and Variance for the advection diffusion example
 """
 
 import Ensemble
+import Sampler
 
 import numpy as np
 
@@ -10,7 +11,7 @@ from matplotlib import pyplot as plt
 from mpl_toolkits.axes_grid1.axes_divider import make_axes_locatable
 
 class Statistics:
-    def __init__(self, simulator, ensemble=0):
+    def __init__(self, simulator, N_e=0, prior_args=None):
         """Class for handling the mean and cov throughout times"""
         self.simulator = simulator
         print("Please remember to set priors!")
@@ -18,8 +19,9 @@ class Statistics:
         self.var  = np.zeros([self.simulator.grid.N_x])
         self.cov  = np.zeros([self.simulator.grid.N_x,self.simulator.grid.N_x])
         # Default is analytical 
-        if ensemble > 0:
-            self.ensemble = Ensemble.Ensemble(simulator, ensemble)
+        if N_e > 0:
+            self.ensemble = Ensemble.Ensemble(simulator, N_e)
+            self.prior_sampler = Sampler.Sampler(simulator.grid, prior_args)
         else:
             self.ensemble = None
 
@@ -82,13 +84,16 @@ class Statistics:
         """Propagating the model for nt simulator time steps.
         NOTE: nt simulator steps are 1 model time step 
         wherefore a distinged (DA) model matrix is constructed"""
+        # Construct forward step matrix (by multiple steps from simulator matrix)
         self.M = np.eye(self.simulator.grid.N_x)
         for t in range(nt):
             self.M = np.matmul(self.simulator.M, self.M)
+
 
         if self.ensemble is None:
             self.mean = np.matmul(self.M, self.mean)
             self.cov = np.matmul(self.M, np.matmul(self.cov, self.M.transpose())) + self.simulator.noise
         else:
-            self.ensemble.set( np.matmul(self.M, self.ensemble.ensemble))
+            forecast = np.matmul(self.M, self.ensemble.ensemble)
+            self.ensemble.set(forecast)
             self.mean = np.average(self.ensemble.ensemble, axis = 1)

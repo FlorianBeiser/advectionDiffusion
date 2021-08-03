@@ -1,16 +1,16 @@
 import numpy as np
+from matplotlib import pyplot as plt
 
 class Observation:
     """Observations in the advection diffusion example.
     Handling observation values and construction observation operator"""
-    def __init__(self, simulator, noise_level=1):
-        self.grid = simulator.grid
-        self.timestamp = simulator.timestamp
+    def __init__(self, grid, noise_level=1):
+        self.grid = grid
         self.noise_level = noise_level
 
         self.N_obs = 0
 
-        print("Remember to set observation positions and to set values!")
+        print("Remember to set observation positions and to set/observe values!")
         
 
     def set_positions(self, positions):
@@ -20,7 +20,15 @@ class Observation:
         for i in range(self.N_y):
             self.obsidx[i] = positions[i][1] * self.grid.nx + positions[i][0]
         self.matrix()
-        self.noise(self.noise_level)
+        self.set_noise(self.noise_level)
+
+    
+    def plot_positions(self):
+        plt.title("Moorings in domain (remember periodic BC)")
+        plt.scatter(np.array(self.positions)[:,0],np.array(self.positions)[:,1])
+        plt.xlim(0, self.grid.nx)
+        plt.ylim(0, self.grid.ny)
+        plt.show()
 
     def matrix(self):
         self.H = np.zeros((self.N_y, self.grid.N_x))
@@ -36,7 +44,7 @@ class Observation:
             self.obses = np.append(self.obses, np.array([obs]), axis=0)
         
 
-    def noise(self, noise_level):
+    def set_noise(self, noise_level):
         self.noise = np.diag(np.repeat(noise_level, self.N_y))
 
     
@@ -46,16 +54,19 @@ class Observation:
         assert self.obses.shape[1] == self.N_y, "Wrong dimensions!"
 
     
-    def to_file(self):
+    def to_file(self, timestamp):
         
-        np.savetxt("observation_positions_" + self.timestamp + ".csv", self.positions)
+        np.savetxt("experiment_files/experiment_" + timestamp + "/observation_positions_" + timestamp + ".csv", self.positions)
         
-        np.savetxt("observation_values_" + self.timestamp + ".csv", np.reshape(self.obses,(self.N_obs, self.N_y) ))
+        np.savetxt("experiment_files/experiment_" + timestamp + "/observation_values_" + timestamp + ".csv", np.reshape(self.obses,(self.N_obs, self.N_y) ))
         
-        f = open("observation_properties_"+self.timestamp, "x")
+        
+    def setup_to_file(self, timestamp):
+        file = "experiment_files/experiment_" + timestamp + "/setup_" + timestamp
+
+        f = open(file, "a")
         f.write("--------------------------------------------\n")
-        f.write("Properties of the observations--------------\n")
-        f.write("--------------------------------------------\n")
+        f.write("Properties of the observations:\n")
         f.write("observation.noise_level = " + str(self.noise_level) + "\n")
         f.close()
 

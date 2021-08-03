@@ -7,6 +7,9 @@ and the actual model propagation.
 import numpy as np
 import datetime
 from scipy.linalg import circulant 
+import os 
+
+import Sampler
 
 class Grid:
     """Grid for the forward model"""
@@ -44,7 +47,7 @@ class Grid:
 
 
 class Simulator:
-    def __init__(self, grid, D=0.05, v=[0.5,0.1], zeta=-0.0001, dt=0.01, noise_level=0.1):
+    def __init__(self, grid, D=0.05, v=[0.5,0.1], zeta=-0.0001, dt=0.01, noise_level=0.1, noise_phi=1.0):
         """
         D - diffusion parameter
         v = np.array([v_x,v_y]) - advection 
@@ -52,7 +55,6 @@ class Simulator:
         """
         self.grid = grid
         self.M = self.matrix(D, v, zeta, dt)
-        self.noise = self.noise(noise_level)
 
         self.D = D 
         self.v = v
@@ -60,8 +62,9 @@ class Simulator:
         self.dt = dt
 
         self.noise_level = noise_level
+        self.noise_phi = noise_phi
 
-        self.timestamp = ""
+        self.Q = self.cov_matrix()
 
 
     @staticmethod
@@ -119,6 +122,19 @@ class Simulator:
         return (np.diag(np.ones(N)) + dt*M)
 
 
+    def cov_matrix(self):
+        noise_args = {"mean_upshift"     : 0.0,
+                        "matern_phi"     : self.noise_phi,
+                        "variance"       : self.noise_level}
+
+        self.sampler = Sampler.Sampler(self.grid, noise_args)
+        var = self.sampler.var
+        cov = self.sampler.cov
+        var_normalisation = np.meshgrid(np.sqrt(var),np.sqrt(var))[0]*np.meshgrid(np.sqrt(var),np.sqrt(var))[1] 
+
+        return var_normalisation * cov
+
+
     def propagate(self, mean, cov=None, steps=1):
         for t in range(steps):
             mean = np.matmul(self.M, mean)
@@ -130,18 +146,21 @@ class Simulator:
         else:
             return mean
 
-    
-    def noise(self, noise_level):
-        return np.diag(noise_level*np.ones(self.grid.N_x))
 
+    def to_file(self, timestamp):
+        
+        root_path = os.getcwd()
+        new_path = os.path.join(root_path, "experiment_files")
+        if not os.path.exists(new_path):
+            os.makedirs(new_path)
+        exp_path = os.path.join(new_path, "experiment_" + timestamp)
+        os.makedirs(exp_path)
 
-    def to_file(self):
-        self.timestamp = datetime.datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
-        file = "truth_" + self.timestamp
+        file = "experiment_files/experiment_" + timestamp + "/setup_" + timestamp
 
-        f = open(file, "x")
+        f = open(file, "a")
         f.write("--------------------------------------------\n")
-        f.write("Truth for the advection diffusion experiment\n")
+        f.write("Setup for the advection diffusion experiment\n")
         f.write("--------------------------------------------\n")
         f.write("The grid:\n")
         f.write("grid.nx = " + str(self.grid.nx) + "\n")
@@ -155,6 +174,7 @@ class Simulator:
         f.write("simulator.zeta = " + str(self.zeta) + "\n")
         f.write("simulator.dt = " + str(self.dt) + "\n")
         f.write("simulator.noise_level = " + str(self.noise_level) + "\n")
+        f.write("simulator.noise_phi = " + str(self.noise_phi) + "\n")
         f.close()
 
 
@@ -180,8 +200,9 @@ def from_file(timestamp):
     zeta = float(f.readline()[17:-1])
     dt = float(f.readline()[15:-1])
     noise_level = float(f.readline()[24:-1])
+    noise_phi = float(f.readline()[23:-1])
 
-    simulator = Simulator(grid, D, v, zeta, dt, noise_level)
+    simulator = Simulator(grid, D, v, zeta, dt, noise_level, noise_phi)
     simulator.timestamp = timestamp
 
     f.close()
