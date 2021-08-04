@@ -99,15 +99,15 @@ class Statistics:
         NOTE: nt simulator steps are 1 model time step 
         wherefore a distinged (DA) model matrix is constructed"""
         # Construct forward step matrix (by multiple steps from simulator matrix)
-        self.M = np.eye(self.simulator.grid.N_x)
-        for t in range(nt):
-            self.M = np.matmul(self.simulator.M, self.M)
+        self.M = np.linalg.matrix_power(self.simulator.M, nt)
 
-
+        # Propagate 
+        # - with model error for ensembles
+        # - without model error for analytical distributions
         if self.ensemble is None:
-            self.mean = np.matmul(self.M, self.mean)
-            self.cov = np.matmul(self.M, np.matmul(self.cov, self.M.transpose())) + self.simulator.noise
+            self.mean = self.M @ self.mean
+            self.cov = np.matmul(self.M, np.matmul(self.cov, self.M.transpose())) + self.simulator.Q
         else:
-            forecast = np.matmul(self.M, self.ensemble.ensemble)
+            forecast = self.M @ self.ensemble.ensemble + self.simulator.noise_sampler.sample(self.ensemble.N_e)
             self.ensemble.set(forecast)
-            self.mean = np.average(self.ensemble.ensemble, axis = 1)
+            self.ensemble_statistics()

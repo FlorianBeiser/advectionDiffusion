@@ -27,10 +27,10 @@ def plot_kernel(grid, prior_args):
     plt.show()
 
 
-def plot_truth(state, grid):
+def plot_truth(state, grid, vmin=None, vmax=None):
      mean = np.reshape(state, (grid.ny,grid.nx))
 
-     plt.imshow(mean, origin = "lower")
+     plt.imshow(mean, origin = "lower", vmin=vmin, vmax=vmax)
      plt.title("Truth")
      plt.colorbar(orientation="horizontal")
      plt.show()
