@@ -32,10 +32,10 @@ class Sampler:
         self.mean = mean_lift + np.reshape(bell, self.grid.N_x)
         ######################
 
-        # Cov: Matern like matrix
+        # Correlation: Matern like matrix
         phi = self.args["matern_phi"]
         dist_mat = np.copy(self.grid.dist_mat)
-        self.cov = (1+phi*dist_mat)*np.exp(-phi*dist_mat)
+        self.corr = (1+phi*dist_mat)*np.exp(-phi*dist_mat)
 
         #######################
 
@@ -43,23 +43,21 @@ class Sampler:
         var_mesh = self.args["variance"]*np.ones((self.grid.ny, self.grid.nx))
         self.var = np.reshape(var_mesh, self.grid.N_x)
 
+        #######################
+
+        # Covariance matrix
+        var_normalization = np.meshgrid(np.sqrt(self.var),np.sqrt(self.var))[0]*np.meshgrid(np.sqrt(self.var),np.sqrt(self.var))[1] 
+        self.cov = var_normalization * self.corr 
+
 
     def sample(self, N=1):
         
-        sample = self.gaussian_random_fieldFFT(self.mean, self.cov, self.var, N)
+        sample = self.gaussian_random_fieldFFT(self.mean, self.corr, self.var, N)
 
         return sample
 
 
-    def gaussian_random_field(self, mean, cov, var, N=1):
-
-        sample = np.random.multivariate_normal(mean, cov + 0.01*np.eye(self.grid.N_x), N).transpose()
-        sample = np.reshape(var, (self.grid.N_x,1)) * sample
-
-        return sample
-
-
-    def gaussian_random_fieldFFT(self, mean, cov, var, N=1):
+    def gaussian_random_fieldFFT(self, mean, corr, var, N=1):
 
         sample = np.zeros((self.grid.N_x, N))
 
@@ -70,7 +68,7 @@ class Sampler:
         # becomes numerical problems with the semi-positive definiteness
         # what forbids to use classical np.random.multivariate_normal sampling
         # but the FFT approach for Toepitz matrixes circumvents those problems
-        cov_toepitz = np.reshape(cov[0,:], (self.grid.ny, self.grid.nx))
+        cov_toepitz = np.reshape(corr[0,:], (self.grid.ny, self.grid.nx))
         cmf = np.real(np.fft.fft2(cov_toepitz))
 
         for e in range(N):
@@ -80,5 +78,17 @@ class Sampler:
             xf = np.real(np.fft.fft2(np.sqrt(np.maximum(cmf,0))*uif))
 
             sample[:,e] = mean + np.reshape(var, self.grid.N_x)*np.reshape(xf, self.grid.N_x)
+
+        return sample
+
+    
+    # Classical alternative for sampling!! (Not used currently) 
+    def gaussian_random_field(self, mean, cov, N=1, nugget=0.1):
+
+        # NOTE: For periodic boundary conditions the covariance matrix 
+        # becomes numerical problems with the semi-positive definiteness.
+        # To avoid negative Eigenvalues a small nugget on the diagonal is added.
+
+        sample = np.random.multivariate_normal(mean, cov + nugget*np.eye(self.grid.N_x), N).transpose()
 
         return sample

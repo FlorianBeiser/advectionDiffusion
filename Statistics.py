@@ -1,5 +1,6 @@
 """
 Mean and Variance for the advection diffusion example
+(eventually in ensemble representation)
 """
 
 import Ensemble
@@ -11,37 +12,50 @@ from matplotlib import pyplot as plt
 from mpl_toolkits.axes_grid1.axes_divider import make_axes_locatable
 
 class Statistics:
-    def __init__(self, simulator, N_e=0, prior_args=None):
+    def __init__(self, simulator, N_e=0):
         """Class for handling the mean and cov throughout times"""
         self.simulator = simulator
-        print("Please remember to set priors!")
+        
+        # Allocation
         self.mean = np.zeros([self.simulator.grid.N_x])
         self.var  = np.zeros([self.simulator.grid.N_x])
         self.cov  = np.zeros([self.simulator.grid.N_x,self.simulator.grid.N_x])
+        
         # Default is analytical 
         if N_e > 0:
             self.ensemble = Ensemble.Ensemble(simulator, N_e)
-            self.prior_sampler = Sampler.Sampler(simulator.grid, prior_args)
         else:
             self.ensemble = None
+            print("Please remember to set priors!")
 
 
     def ensemble_statistics(self):
         self.mean = np.average(self.ensemble.ensemble, axis = 1)
-        self.cov = 1/(self.ensemble.N_e-1)*\
-            (self.ensemble.ensemble - np.reshape(self.mean, (self.simulator.grid.N_x,1))) \
-            @ (self.ensemble.ensemble - np.reshape(self.mean, (self.simulator.grid.N_x,1))).transpose()
-        self.var = np.diag(self.cov)
+        if self.ensemble.N_e > 1: 
+            self.cov = 1/(self.ensemble.N_e-1)*\
+                (self.ensemble.ensemble - np.reshape(self.mean, (self.simulator.grid.N_x,1))) \
+                @ (self.ensemble.ensemble - np.reshape(self.mean, (self.simulator.grid.N_x,1))).transpose()
+            self.var = np.diag(self.cov)
         
 
-    def set(self, mean, cov, var_mesh=None, nugget=0.01):
+    def set(self, mean, cov):
         """Setting the member variables from input arguments"""
         self.mean = mean
         self.var = np.diag(cov)
         self.cov = cov
+
+
+    def set_prior(self, prior_args):
+        
+        prior_sampler = Sampler.Sampler(self.simulator.grid, prior_args)
+            
         if self.ensemble is not None:
-            self.ensemble.initialize(mean, cov, var_mesh, nugget)
+            self.ensemble.initialize(prior_sampler)
             self.ensemble_statistics()
+        else:
+            self.mean = prior_sampler.mean
+            self.cov  = prior_sampler.cov
+            self.var  = np.diag(self.cov)
 
 
     def set_ensemble(self, ensemble):

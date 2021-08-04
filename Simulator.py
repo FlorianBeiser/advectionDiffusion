@@ -123,16 +123,14 @@ class Simulator:
 
 
     def cov_matrix(self):
+        
         noise_args = {"mean_upshift"     : 0.0,
                         "matern_phi"     : self.noise_phi,
                         "variance"       : self.noise_level}
 
-        self.sampler = Sampler.Sampler(self.grid, noise_args)
-        var = self.sampler.var
-        cov = self.sampler.cov
-        var_normalisation = np.meshgrid(np.sqrt(var),np.sqrt(var))[0]*np.meshgrid(np.sqrt(var),np.sqrt(var))[1] 
+        self.noise_sampler = Sampler.Sampler(self.grid, noise_args)
 
-        return var_normalisation * cov
+        return self.noise_sampler.cov
 
 
     def propagate(self, mean, cov=None, steps=1):
