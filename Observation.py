@@ -1,4 +1,5 @@
 import numpy as np
+import linecache
 from matplotlib import pyplot as plt
 
 class Observation:
@@ -67,10 +68,13 @@ class Observation:
         f.close()
 
 
-    def to_file(self, timestamp, obs_timestamp):
+    def positions_to_file(self, timestamp):
 
-        file_positions = "experiment_files/experiment_" + timestamp + "/observation_positions_" + obs_timestamp + ".csv"
+        file_positions = "experiment_files/experiment_" + timestamp + "/observation_positions.csv"
         np.savetxt(file_positions, self.positions)
+    
+    
+    def values_to_file(self, timestamp, obs_timestamp):
         
         file_values = "experiment_files/experiment_" + timestamp + "/observation_values_" + obs_timestamp + ".csv"
         np.savetxt(file_values, np.reshape(self.obses,(self.N_obs, self.N_y) ))
@@ -78,19 +82,17 @@ class Observation:
         
 
 
-def from_file(simulator):
+def from_file(grid, timestamp, obs_timestamp):
     
-    f = open("observation_properties_"+simulator.timestamp, "r")
-    f.readline()
-    f.readline()
-    f.readline()
-    noise_level = float(f.readline()[26:-1])
-    f.close()
+    f = "experiment_files/experiment_"+timestamp+"/setup"
+    noise_level = float(linecache.getline(f, 19)[26:-1])
 
-    observation = Observation(simulator, noise_level)
+    observation = Observation(grid, noise_level)
 
-    observation.set_positions(np.loadtxt("observation_positions_"+simulator.timestamp+".csv"))
+    f_poses = "experiment_files/experiment_" + timestamp + "/observation_positions.csv"
+    observation.set_positions(np.loadtxt(f_poses))
 
-    observation.load_observations("observation_values_"+simulator.timestamp+".csv")
+    f_values = "experiment_files/experiment_" + timestamp + "/observation_values_" + obs_timestamp + ".csv"
+    observation.load_observations(f_values)
 
     return observation

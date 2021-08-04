@@ -7,6 +7,7 @@ import Ensemble
 import Sampler
 
 import numpy as np
+import linecache
 
 from matplotlib import pyplot as plt
 from mpl_toolkits.axes_grid1.axes_divider import make_axes_locatable
@@ -57,6 +58,11 @@ class Statistics:
             self.cov  = prior_sampler.cov
             self.var  = np.diag(self.cov)
 
+        self.vmin_mean = np.min(self.mean)
+        self.vmax_mean = np.max(self.mean)
+
+        self.vmax_cov = np.max(self.cov)
+
 
     def set_ensemble(self, ensemble):
         self.ensemble.set(ensemble)
@@ -69,7 +75,7 @@ class Statistics:
 
         if mean is None:
             mean = np.reshape(self.mean, (self.simulator.grid.ny,self.simulator.grid.nx))
-        fig0 = axs[0].imshow(mean, origin = "lower", vmin=0.0, vmax=0.5)
+        fig0 = axs[0].imshow(mean, origin = "lower", vmin=self.vmin_mean, vmax=self.vmax_mean)
         axs[0].set_title("Mean")
         ax_divider = make_axes_locatable(axs[0])
         ax_cb = ax_divider.append_axes("bottom", size="10%", pad="20%")
@@ -77,7 +83,7 @@ class Statistics:
 
         if var is None:
             var = np.reshape(self.var, (self.simulator.grid.ny,self.simulator.grid.nx))
-        fig1 = axs[1].imshow(var, origin = "lower", vmin=0.0, vmax=0.5)
+        fig1 = axs[1].imshow(var, origin = "lower", vmin=0.0, vmax=self.vmax_cov)
         axs[1].set_title("Variance")
         ax_divider = make_axes_locatable(axs[1])
         ax_cb = ax_divider.append_axes("bottom", size="10%", pad="20%")
@@ -85,7 +91,7 @@ class Statistics:
 
         if cov is None:
             cov = self.cov
-        fig2 = axs[2].imshow(cov, vmin=0.0, vmax=0.25)
+        fig2 = axs[2].imshow(cov, vmin=0.0, vmax=self.vmax_cov)
         axs[2].set_title("Covariance Matrix")
         ax_divider = make_axes_locatable(axs[2])
         ax_cb = ax_divider.append_axes("bottom", size="10%", pad="20%")
@@ -106,8 +112,29 @@ class Statistics:
         # - without model error for analytical distributions
         if self.ensemble is None:
             self.mean = self.M @ self.mean
-            self.cov = np.matmul(self.M, np.matmul(self.cov, self.M.transpose())) + self.simulator.Q
+            self.cov = self.M @ self.cov @ self.M.T + self.simulator.Q
         else:
             forecast = self.M @ self.ensemble.ensemble + self.simulator.noise_sampler.sample(self.ensemble.N_e)
             self.ensemble.set(forecast)
             self.ensemble_statistics()
+
+
+def prior_args_from_file(timestamp):
+    f = "experiment_files/experiment_"+timestamp+"/setup"
+    mean_upshift = float(linecache.getline(f, 23)[15:-1])
+    bell_center = linecache.getline(f, 24)[14:-1].strip('][').split(', ')
+    bell_center[0] = float(bell_center[0])
+    bell_center[1] = float(bell_center[1])
+    bell_sharpness = float(linecache.getline(f, 25)[17:-1])
+    bell_scaling = float(linecache.getline(f, 26)[15:-1])
+    matern_phi = float(linecache.getline(f, 27)[13:-1])
+    variance = float(linecache.getline(f, 28)[10:-1])
+
+    prior_args = {"mean_upshift" : mean_upshift,
+                "bell_center"    : bell_center,
+                "bell_sharpness" : bell_sharpness,
+                "bell_scaling"   : bell_scaling,
+                "matern_phi"     : matern_phi , 
+                "variance"       : variance}
+
+    return prior_args

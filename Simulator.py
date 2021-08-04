@@ -177,7 +177,7 @@ class Simulator:
 
 
 def from_file(timestamp):
-    f = open("truth_"+timestamp, "r")
+    f = open("experiment_files/experiment_"+timestamp+"/setup", "r")
     f.readline()
     f.readline()
     f.readline()
@@ -198,10 +198,9 @@ def from_file(timestamp):
     zeta = float(f.readline()[17:-1])
     dt = float(f.readline()[15:-1])
     noise_level = float(f.readline()[24:-1])
-    noise_phi = float(f.readline()[23:-1])
+    noise_phi = float(f.readline()[22:-1])
 
     simulator = Simulator(grid, D, v, zeta, dt, noise_level, noise_phi)
-    simulator.timestamp = timestamp
 
     f.close()
 
