@@ -40,7 +40,7 @@ def to_file(timestamp, simulator, prior_args, observation):
     """Write the permanent file for the experimental set-up"""
     simulator.to_file(timestamp)
 
-    file = "experiment_files/experiment_" + timestamp + "/setup_" + timestamp
+    file = "experiment_files/experiment_" + timestamp + "/setup"
 
     f = open(file, "a")
     f.write("--------------------------------------------\n")

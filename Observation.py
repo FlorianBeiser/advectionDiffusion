@@ -58,7 +58,7 @@ class Observation:
 
     
     def setup_to_file(self, timestamp):
-        file = "experiment_files/experiment_" + timestamp + "/setup_" + timestamp
+        file = "experiment_files/experiment_" + timestamp + "/setup"
 
         f = open(file, "a")
         f.write("--------------------------------------------\n")
@@ -67,11 +67,13 @@ class Observation:
         f.close()
 
 
-    def to_file(self, timestamp):
+    def to_file(self, timestamp, obs_timestamp):
+
+        file_positions = "experiment_files/experiment_" + timestamp + "/observation_positions_" + obs_timestamp + ".csv"
+        np.savetxt(file_positions, self.positions)
         
-        np.savetxt("experiment_files/experiment_" + timestamp + "/observation_positions_" + timestamp + ".csv", self.positions)
-        
-        np.savetxt("experiment_files/experiment_" + timestamp + "/observation_values_" + timestamp + ".csv", np.reshape(self.obses,(self.N_obs, self.N_y) ))
+        file_values = "experiment_files/experiment_" + timestamp + "/observation_values_" + obs_timestamp + ".csv"
+        np.savetxt(file_values, np.reshape(self.obses,(self.N_obs, self.N_y) ))
         
         
 

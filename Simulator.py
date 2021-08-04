@@ -154,7 +154,7 @@ class Simulator:
         exp_path = os.path.join(new_path, "experiment_" + timestamp)
         os.makedirs(exp_path)
 
-        file = "experiment_files/experiment_" + timestamp + "/setup_" + timestamp
+        file = "experiment_files/experiment_" + timestamp + "/setup"
 
         f = open(file, "a")
         f.write("--------------------------------------------\n")
