@@ -8,13 +8,10 @@ import numpy as np
 class LETKalman:
     def __init__(self, statistics, observation, scale_r):
         self.statistics = statistics
-
-        # Model error cov matrix
-        self.epsilon = self.statistics.simulator.noise
         
         # Observation and obs error cov matrices
         self.H = observation.H
-        self.tau = observation.noise
+        self.R = observation.R
 
         # More detailed information on the observation sites
         self.N_y = observation.N_y
@@ -248,7 +245,7 @@ class LETKalman:
             HX_f_loc_pert = HX_f_pert[d,:]
 
             # LETKF
-            Rinv = 1/self.tau[d,d]
+            Rinv = 1/self.R[d,d]
 
             y_loc = obs[d]
             D = y_loc - HX_f_loc_mean
