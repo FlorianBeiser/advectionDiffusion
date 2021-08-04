@@ -12,23 +12,13 @@ class Kalman:
         self.H = observation.H
         self.R = observation.R
 
-    def filter(self, forecasted_mean, forecasted_cov, obs, series=None):
+    def filter(self, forecasted_mean, forecasted_cov, obs):
 
-        if series is not None:
-            H = self.H[series,:]
+        S = self.H @ forecasted_cov @ self.H.T + self.R
+        K = forecasted_cov @ self.H.T @ np.linalg.inv(S)
 
-            Q = np.matmul(H,np.matmul(forecasted_cov,H.transpose())) + self.R[series,series]
-            K = np.matmul(forecasted_cov,H.transpose()) / Q
-
-            updated_mean = forecasted_mean + K * (obs - np.matmul(H,forecasted_mean))
-            updated_covariance = forecasted_cov -  Q * np.outer(K, K)
-
-        else:
-            Q = np.matmul(self.H,np.matmul(forecasted_cov,self.H.transpose())) + self.R
-            K = np.matmul(forecasted_cov,np.matmul(self.H.transpose(), np.linalg.inv(Q)))
-
-            updated_mean = forecasted_mean + np.matmul(K, (obs - np.matmul(self.H,forecasted_mean)))
-            updated_covariance = forecasted_cov - np.matmul(K,np.matmul(Q,K.transpose()))
+        updated_mean = forecasted_mean + K @ (obs - self.H @ forecasted_mean)
+        updated_covariance = forecasted_cov - K @ S @ K.T
         
         self.statistics.set(updated_mean, updated_covariance)
 
