@@ -2,27 +2,22 @@
 Kalman filter update for advection diffusion example.
 """
 
-from Simulator import Simulator
-from Statistics import Statistics
 import numpy as np
 
 class ETKalman:
     def __init__(self, statistics, observation):
         self.statistics = statistics
-
-        # Model error cov matrix
-        self.epsilon = self.statistics.simulator.noise
         
         # Observation and obs error cov matrices
         self.H = observation.H
-        self.tau = observation.noise
+        self.R = observation.R
 
-    def filter(self, ensemble, obs, series=None):
+    def filter(self, ensemble, obs):
 
         X_f_mean = np.average(ensemble, axis=1)
         X_f_pert = ensemble - np.reshape(X_f_mean, (self.statistics.simulator.grid.N_x,1))
 
-        Rinv = np.linalg.inv(self.tau)
+        Rinv = np.linalg.inv(self.R)
 
         HX_f =  self.H @ ensemble
         HX_f_mean = np.average(HX_f, axis=1)
