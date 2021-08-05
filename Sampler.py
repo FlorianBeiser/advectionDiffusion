@@ -77,7 +77,7 @@ class Sampler:
 
             xf = np.real(np.fft.fft2(np.sqrt(np.maximum(cmf,0))*uif))
 
-            sample[:,e] = mean + np.reshape(var, self.grid.N_x)*np.reshape(xf, self.grid.N_x)
+            sample[:,e] = mean + np.reshape(np.sqrt(var), self.grid.N_x)*np.reshape(xf, self.grid.N_x)
 
         return sample
 
