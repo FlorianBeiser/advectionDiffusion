@@ -42,7 +42,8 @@ class Grid:
                 Dy = dj * self.dy
                 self.dist_toepitz[j,i] = np.sqrt(Dx**2 + Dy**2)
 
-        self.dist_mat = circulant(np.reshape(self.dist_toepitz, self.N_x))
+        # NOTE: circulant takes the first column but we give the first row -> transposing!
+        self.dist_mat = circulant(np.reshape(self.dist_toepitz, self.N_x)).T
 
 
 
