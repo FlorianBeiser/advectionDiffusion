@@ -51,7 +51,7 @@ def to_file(timestamp, simulator, prior_args, observation):
     f.write("bell_sharpness = " + str(prior_args["bell_sharpness"]) + "\n")
     f.write("bell_scaling = " + str(prior_args["bell_scaling"]) + "\n")
     f.write("matern_phi = " + str(prior_args["matern_phi"]) + "\n")
-    f.write("variance = " + str(prior_args["variance"]) + "\n")
+    f.write("stddev = " + str(prior_args["stddev"]) + "\n")
 
     observation.setup_to_file(timestamp)
 

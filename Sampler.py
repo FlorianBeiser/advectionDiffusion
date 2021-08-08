@@ -40,24 +40,24 @@ class Sampler:
         #######################
 
         # Var in each grid node
-        var_mesh = self.args["variance"]*np.ones((self.grid.ny, self.grid.nx))
-        self.var = np.reshape(var_mesh, self.grid.N_x)
+        stddev_mesh = self.args["stddev"]*np.ones((self.grid.ny, self.grid.nx))
+        self.stddev = np.reshape(stddev_mesh, self.grid.N_x)
 
         #######################
 
         # Covariance matrix
-        var_normalization = np.meshgrid(np.sqrt(self.var),np.sqrt(self.var))[0]*np.meshgrid(np.sqrt(self.var),np.sqrt(self.var))[1] 
-        self.cov = var_normalization * self.corr 
+        stddev_normalization = np.meshgrid(self.stddev,self.stddev)[0]*np.meshgrid(self.stddev,self.stddev)[1] 
+        self.cov = stddev_normalization * self.corr 
 
 
     def sample(self, N=1):
         
-        sample = self.gaussian_random_fieldFFT(self.mean, self.corr, self.var, N)
+        sample = self.gaussian_random_fieldFFT(self.mean, self.corr, self.stddev, N)
 
         return sample
 
 
-    def gaussian_random_fieldFFT(self, mean, corr, var, N=1):
+    def gaussian_random_fieldFFT(self, mean, corr, stddev, N=1):
 
         sample = np.zeros((self.grid.N_x, N))
 
@@ -77,7 +77,7 @@ class Sampler:
 
             xf = np.real(np.fft.fft2(np.sqrt(np.maximum(cmf,0))*uif))
 
-            sample[:,e] = mean + np.reshape(np.sqrt(var), self.grid.N_x)*np.reshape(xf, self.grid.N_x)
+            sample[:,e] = mean + np.reshape(stddev, self.grid.N_x)*np.reshape(xf, self.grid.N_x)
 
         return sample
 

@@ -47,7 +47,7 @@ class Grid:
 
 
 class Simulator:
-    def __init__(self, grid, D=0.05, v=[0.5,0.1], zeta=-0.0001, dt=0.01, noise_level=0.1, noise_phi=1.0):
+    def __init__(self, grid, D=0.05, v=[0.5,0.1], zeta=-0.0001, dt=0.01, noise_stddev=0.1, noise_matern_phi=1.0):
         """
         D - diffusion parameter
         v = np.array([v_x,v_y]) - advection 
@@ -61,8 +61,8 @@ class Simulator:
         self.zeta = zeta
         self.dt = dt
 
-        self.noise_level = noise_level
-        self.noise_phi = noise_phi
+        self.noise_matern_phi = noise_matern_phi
+        self.noise_stddev = noise_stddev
 
         self.Q = self.cov_matrix()
 
@@ -125,8 +125,8 @@ class Simulator:
     def cov_matrix(self):
         
         noise_args = {"mean_upshift"     : 0.0,
-                        "matern_phi"     : self.noise_phi,
-                        "variance"       : self.noise_level}
+                      "matern_phi"       : self.noise_matern_phi,
+                      "stddev"           : self.noise_stddev}
 
         self.noise_sampler = Sampler.Sampler(self.grid, noise_args)
 
@@ -171,8 +171,8 @@ class Simulator:
         f.write("simulator.v = " + str(self.v) + "\n")
         f.write("simulator.zeta = " + str(self.zeta) + "\n")
         f.write("simulator.dt = " + str(self.dt) + "\n")
-        f.write("simulator.noise_level = " + str(self.noise_level) + "\n")
-        f.write("simulator.noise_phi = " + str(self.noise_phi) + "\n")
+        f.write("simulator.noise_stddev = " + str(self.noise_stddev) + "\n")
+        f.write("simulator.noise_matern_phi = " + str(self.noise_matern_phi) + "\n")
         f.close()
 
 
@@ -197,10 +197,11 @@ def from_file(timestamp):
     v[1] = float(v[1])
     zeta = float(f.readline()[17:-1])
     dt = float(f.readline()[15:-1])
-    noise_level = float(f.readline()[24:-1])
-    noise_phi = float(f.readline()[22:-1])
+    noise_stddev = float(f.readline()[25:-1])
+    noise_matern_phi = float(f.readline()[29:-1])
 
-    simulator = Simulator(grid, D, v, zeta, dt, noise_level, noise_phi)
+    simulator = Simulator(grid, D=D, v=v, zeta=zeta, dt=dt, 
+                            noise_stddev=noise_stddev, noise_matern_phi=noise_matern_phi)
 
     f.close()
 

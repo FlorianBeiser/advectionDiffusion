@@ -18,9 +18,9 @@ class Statistics:
         self.simulator = simulator
         
         # Allocation
-        self.mean = np.zeros([self.simulator.grid.N_x])
-        self.var  = np.zeros([self.simulator.grid.N_x])
-        self.cov  = np.zeros([self.simulator.grid.N_x,self.simulator.grid.N_x])
+        self.mean   = np.zeros([self.simulator.grid.N_x])
+        self.stddev = np.zeros([self.simulator.grid.N_x])
+        self.cov    = np.zeros([self.simulator.grid.N_x,self.simulator.grid.N_x])
         
         # Default is analytical 
         if N_e > 0:
@@ -36,13 +36,13 @@ class Statistics:
             self.cov = 1/(self.ensemble.N_e-1)*\
                 (self.ensemble.ensemble - np.reshape(self.mean, (self.simulator.grid.N_x,1))) \
                 @ (self.ensemble.ensemble - np.reshape(self.mean, (self.simulator.grid.N_x,1))).transpose()
-            self.var = np.diag(self.cov)
+            self.stddev = np.sqrt(np.diag(self.cov))
         
 
     def set(self, mean, cov):
         """Setting the member variables from input arguments"""
         self.mean = mean
-        self.var = np.diag(cov)
+        self.stddev = np.sqrt(np.diag(cov))
         self.cov = cov
 
 
@@ -56,7 +56,7 @@ class Statistics:
         else:
             self.mean = prior_sampler.mean
             self.cov  = prior_sampler.cov
-            self.var  = np.diag(self.cov)
+            self.stddev  = np.sqrt(np.diag(self.cov))
 
         self.vmin_mean = np.min(self.mean)
         self.vmax_mean = np.max(self.mean)
@@ -69,8 +69,8 @@ class Statistics:
         self.ensemble_statistics()
 
 
-    def plot(self, mean=None, var=None, cov=None):
-        """Plotting mean, var, and cov in a unified graphics"""
+    def plot(self, mean=None, stddev=None, cov=None):
+        """Plotting mean, stddev, and cov in a unified graphics"""
         fig, axs = plt.subplots(1,3, figsize=(12,4))
 
         if mean is None:
@@ -81,10 +81,10 @@ class Statistics:
         ax_cb = ax_divider.append_axes("bottom", size="10%", pad="20%")
         plt.colorbar(fig0, cax=ax_cb, orientation="horizontal")
 
-        if var is None:
-            var = np.reshape(self.var, (self.simulator.grid.ny,self.simulator.grid.nx))
-        fig1 = axs[1].imshow(var, origin = "lower", vmin=0.0, vmax=self.vmax_cov)
-        axs[1].set_title("Variance")
+        if stddev is None:
+            stddev = np.reshape(self.stddev, (self.simulator.grid.ny,self.simulator.grid.nx))
+        fig1 = axs[1].imshow(stddev, origin = "lower", vmin=0.0, vmax=self.vmax_cov)
+        axs[1].set_title("Standard Deviation")
         ax_divider = make_axes_locatable(axs[1])
         ax_cb = ax_divider.append_axes("bottom", size="10%", pad="20%")
         plt.colorbar(fig1, cax=ax_cb, orientation="horizontal")
@@ -128,13 +128,13 @@ def prior_args_from_file(timestamp):
     bell_sharpness = float(linecache.getline(f, 25)[17:-1])
     bell_scaling = float(linecache.getline(f, 26)[15:-1])
     matern_phi = float(linecache.getline(f, 27)[13:-1])
-    variance = float(linecache.getline(f, 28)[10:-1])
+    stddev = float(linecache.getline(f, 28)[8:-1])
 
     prior_args = {"mean_upshift" : mean_upshift,
                 "bell_center"    : bell_center,
                 "bell_sharpness" : bell_sharpness,
                 "bell_scaling"   : bell_scaling,
                 "matern_phi"     : matern_phi , 
-                "variance"       : variance}
+                "stddev"         : stddev}
 
     return prior_args
