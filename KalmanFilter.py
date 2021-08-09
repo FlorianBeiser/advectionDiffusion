@@ -18,6 +18,6 @@ class Kalman:
         K = forecasted_cov @ self.H.T @ np.linalg.inv(S)
 
         updated_mean = forecasted_mean + K @ (obs - self.H @ forecasted_mean)
-        updated_covariance = forecasted_cov - K @ S @ K.T
+        updated_covariance = (np.eye(self.statistics.simulator.grid.N_x) - K @ self.H) @ forecasted_cov
         
         self.statistics.set(updated_mean, updated_covariance)
