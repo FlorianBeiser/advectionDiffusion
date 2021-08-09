@@ -5,9 +5,9 @@ from matplotlib import pyplot as plt
 class Observation:
     """Observations in the advection diffusion example.
     Handling observation values and construction observation operator"""
-    def __init__(self, grid, noise_level=0.1):
+    def __init__(self, grid, noise_stddev=0.1):
         self.grid = grid
-        self.noise_level = noise_level
+        self.noise_stddev = noise_stddev
 
         self.N_obs = 0
 
@@ -41,7 +41,7 @@ class Observation:
 
     def observe(self, x):
         self.N_obs = self.N_obs + 1 
-        obs = self.H @ x + np.random.normal(scale=np.sqrt(self.noise_level), size=self.N_y) # scale = standard deviation
+        obs = self.H @ x + np.random.normal(scale=self.noise_stddev, size=self.N_y)
         if self.N_obs == 1:
             self.obses = np.array([obs])
         else:
@@ -49,7 +49,7 @@ class Observation:
 
 
     def noise_matrix(self):
-        self.R = self.noise_level * np.eye(self.N_y)
+        self.R = self.noise_stddev**2 * np.eye(self.N_y)
 
     
     def load_observations(self, fname):
@@ -64,7 +64,7 @@ class Observation:
         f = open(file, "a")
         f.write("--------------------------------------------\n")
         f.write("Properties of the observations:\n")
-        f.write("observation.noise_level = " + str(self.noise_level) + "\n")
+        f.write("observation.noise_stddev = " + str(self.noise_stddev) + "\n")
         f.close()
 
 
@@ -85,9 +85,9 @@ class Observation:
 def from_file(grid, timestamp, obs_timestamp):
     
     f = "experiment_files/experiment_"+timestamp+"/setup"
-    noise_level = float(linecache.getline(f, 19)[26:-1])
+    noise_stddev = float(linecache.getline(f, 19)[27:-1])
 
-    observation = Observation(grid, noise_level)
+    observation = Observation(grid, noise_stddev)
 
     f_poses = "experiment_files/experiment_" + timestamp + "/observation_positions.csv"
     observation.set_positions(np.loadtxt(f_poses))
