@@ -58,8 +58,8 @@ class Statistics:
             self.cov  = prior_sampler.cov
             self.stddev  = np.sqrt(np.diag(self.cov))
 
-        self.vmin_mean = np.min(self.mean)
-        self.vmax_mean = np.max(self.mean)
+        self.vmin_mean = np.min(prior_sampler.mean) - 0.5
+        self.vmax_mean = np.max(prior_sampler.mean) + 0.5 
 
         self.vmax_cov = np.max(self.cov)
 

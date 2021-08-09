@@ -21,5 +21,3 @@ class Kalman:
         updated_covariance = forecasted_cov - K @ S @ K.T
         
         self.statistics.set(updated_mean, updated_covariance)
-
-        return updated_mean, updated_covariance

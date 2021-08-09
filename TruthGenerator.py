@@ -2,6 +2,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from mpl_toolkits.axes_grid1.axes_divider import make_axes_locatable
 
+import Sampler
 
 def plot_kernel(grid, prior_args):
     """Plotting 1D Matern kernel for given phi on the half x domain of the grid"""
@@ -25,6 +26,13 @@ def plot_kernel(grid, prior_args):
 
     plt.legend(["cov kernel", "correlation range", "desired cut"])
     plt.show()
+
+
+def plot_xlims(statistics, prior_args):
+    prior_sampler = Sampler.Sampler(statistics.simulator.grid, prior_args)
+    vmin = np.min(prior_sampler.mean) - 0.5
+    vmax = np.max(prior_sampler.mean) + 0.5 
+    return vmin, vmax 
 
 
 def plot_truth(state, grid, vmin=None, vmax=None):
