@@ -10,10 +10,10 @@ def plot_kernel(grid, prior_args):
 
     # Plot kernel
     h = np.arange(int(max(grid.nx,grid.ny)/2))
-    matern_kernel = (1+matern_phi*h)*np.exp(-matern_phi*h)
+    matern_kernel = (1+matern_phi*grid.dx*h)*np.exp(-matern_phi*grid.dx*h)
     plt.title("Matern covariance kernel")
     plt.plot(matern_kernel)
-    plt.xlabel("Distance")
+    plt.xlabel("Distance in grid cells")
     plt.ylabel("Correlation")
 
     # Plot threshold
@@ -26,6 +26,16 @@ def plot_kernel(grid, prior_args):
 
     plt.legend(["cov kernel", "correlation range", "desired cut"])
     plt.show()
+
+
+def plot_corr_radius(grid, prior_args):
+    prior_sampler = Sampler.Sampler(grid, prior_args)
+    corr = prior_sampler.corr
+    corr0 = corr[0]
+    plt.imshow(np.reshape((corr0>0.05), (grid.ny, grid.nx)), origin="lower")
+    plt.title("Correlation area for (0,0)")
+    plt.show()
+
 
 
 def plot_xlims(statistics, prior_args):
