@@ -58,6 +58,11 @@ class Observation:
         assert self.obses.shape[1] == self.N_y, "Wrong dimensions!"
 
     
+    def clear_observations(self):
+        self.obses = np.array([])
+        self.N_obs = 0 
+
+    
     def setup_to_file(self, timestamp):
         file = "experiment_files/experiment_" + timestamp + "/setup"
 
@@ -82,7 +87,7 @@ class Observation:
         
 
 
-def from_file(grid, timestamp, obs_timestamp):
+def from_file(grid, timestamp, obs_timestamp=None):
     
     f = "experiment_files/experiment_"+timestamp+"/setup"
     noise_stddev = float(linecache.getline(f, 19)[27:-1])
@@ -92,7 +97,8 @@ def from_file(grid, timestamp, obs_timestamp):
     f_poses = "experiment_files/experiment_" + timestamp + "/observation_positions.csv"
     observation.set_positions(np.loadtxt(f_poses))
 
-    f_values = "experiment_files/experiment_" + timestamp + "/observation_values_" + obs_timestamp + ".csv"
-    observation.load_observations(f_values)
+    if obs_timestamp is not None:
+        f_values = "experiment_files/experiment_" + timestamp + "/observation_values_" + obs_timestamp + ".csv"
+        observation.load_observations(f_values)
 
     return observation

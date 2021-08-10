@@ -191,7 +191,7 @@ class LETKalman:
 
 
 
-    def filter(self, ensemble, obs, series=None):
+    def filter(self, ensemble, obs):
 
         # Bookkeeping
         nx = self.statistics.simulator.grid.nx
