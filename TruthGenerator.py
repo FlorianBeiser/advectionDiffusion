@@ -20,8 +20,8 @@ def plot_kernel(grid, prior_args):
     plt.plot(0.05*np.ones_like(h), "g")
 
     # Plot desired cutting area
-    corr_min = int(max(grid.nx,grid.ny)/8)
-    corr_max = int(max(grid.nx,grid.ny)/6)
+    corr_min = int(max(grid.nx,grid.ny)/4)
+    corr_max = int(max(grid.nx,grid.ny)/3)
     plt.fill_between(range(len(h)), 0, 0.1, where=(h >= corr_min) & (h <= corr_max), color="r", alpha=0.5)
 
     plt.legend(["cov kernel", "correlation range", "desired cut"])
