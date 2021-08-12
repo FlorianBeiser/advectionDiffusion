@@ -83,7 +83,7 @@ class Statistics:
 
         if stddev is None:
             stddev = np.reshape(self.stddev, (self.simulator.grid.ny,self.simulator.grid.nx))
-        fig1 = axs[1].imshow(stddev, origin = "lower", vmin=0.0, vmax=self.vmax_cov)
+        fig1 = axs[1].imshow(stddev, origin = "lower", vmin=0.0, vmax=np.sqrt(self.vmax_cov))
         axs[1].set_title("Standard Deviation")
         ax_divider = make_axes_locatable(axs[1])
         ax_cb = ax_divider.append_axes("bottom", size="10%", pad="20%")
