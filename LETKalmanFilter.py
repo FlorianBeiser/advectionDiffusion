@@ -18,8 +18,44 @@ class LETKalman:
         self.observation_positions = observation.positions *\
             np.array([self.statistics.simulator.grid.dx,self.statistics.simulator.grid.dy])
 
+        # Grouping for serial processing
+        self.initializeGroups(scale_r)
+
         # Local kernels around observations sites
         self.initializeLocalisation(scale_r)
+
+
+    def initializeGroups(self, scale_r):
+        # Assembling observation distance matrix
+        self.obs_dist_mat = np.zeros((self.N_y, self.N_y))
+        for i in range(self.N_y):
+            for j in range(self.N_y):
+                dx = np.abs(self.observation_positions[i][0] - self.observation_positions[j][0])
+                if dx > self.statistics.simulator.grid.xdim/2:
+                    dx = self.statistics.simulator.grid.xdim - dx
+                dy = np.abs(self.observation_positions[i][1] - self.observation_positions[j][1])
+                if dy > self.statistics.simulator.grid.ydim/2:
+                    dy = self.statistics.simulator.grid.ydim - dy 
+                self.obs_dist_mat[i,j] = np.sqrt(dx**2+dy**2)
+        # Heavy diagonal such that 0-distances are above every threshold
+        np.fill_diagonal(self.obs_dist_mat, np.sqrt(self.statistics.simulator.grid.xdim**2 + self.statistics.simulator.grid.ydim**2))
+
+        # Groups of "un-correlated" observation
+        self.groups = list([list(np.arange(self.N_y, dtype=int))])
+        # Observations are assumed to be uncorrelated, if distance bigger than threshold
+        threshold = 2.5 * scale_r * self.statistics.simulator.grid.dx
+
+        g = 0 
+        while self.obs_dist_mat[np.ix_(self.groups[g],self.groups[g])].min() < threshold:
+            while self.obs_dist_mat[np.ix_(self.groups[g],self.groups[g])].min() < threshold:
+                mask = np.ix_(self.groups[g],self.groups[g])
+                idx2move = self.groups[g][np.where(self.obs_dist_mat[mask] == self.obs_dist_mat[mask].min())[1][0]]
+                self.groups[g] = list(np.delete(self.groups[g], np.where(self.groups[g] == idx2move)))
+                if len(self.groups)<g+2: 
+                    self.groups.append([idx2move])
+                else:
+                    self.groups[g+1].append(idx2move)
+            g = g + 1 
 
 
     def initializeLocalisation(self, scale_r):
