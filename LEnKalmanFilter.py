@@ -256,8 +256,7 @@ class LEnKalman:
         X_f_loc_mean_tmp = np.zeros((N_x_local))
 
         # Loop over all d
-        for d in range(1):#range(len(obs)):
-            d = 13
+        for d in range(len(obs)):
     
             L, xroll, yroll = self.all_Ls[d], self.all_xrolls[d], self.all_yrolls[d]
 
@@ -278,12 +277,6 @@ class LEnKalman:
             X_f_loc_pert = X_f_loc_pert_tmp.T
             X_f_loc_mean = X_f_loc_mean_tmp.T
 
-            # DEBUG
-            plt.imshow(np.reshape(X_f_loc_mean, self.W_loc.shape), vmin=12.5, vmax=15, origin="lower")
-            plt.title("Local forecast mean")
-            plt.colorbar()
-            plt.show()
-
             # Local observation
             HX_f_loc = HX_f[d]
             HX_f_loc_mean = HX_f_mean[d]
@@ -300,12 +293,6 @@ class LEnKalman:
             E = np.outer(HX_f_loc_pert, C) # N_e x N_e 
 
             X_a_loc = X_f_loc + 1/(N_e-1)* X_f_loc_pert @ E # N_x x N_e 
-
-            # DEBUG
-            plt.imshow(np.reshape(np.average(X_a_loc,axis=1), self.W_loc.shape), vmin=12.5, vmax=15, origin="lower")
-            plt.title("Local analysis mean")
-            plt.colorbar()
-            plt.show()
 
             # Calculate weighted local analysis
             weighted_X_a_loc = X_a_loc[:,:]*(np.tile(self.W_loc.flatten().T, (N_e, 1)).T)
