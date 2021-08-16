@@ -279,12 +279,13 @@ class LEnKalman:
             X_f_loc_mean = X_f_loc_mean_tmp.T
 
             # DEBUG
-            plt.imshow(np.reshape(X_f_loc_mean, self.W_loc.shape), vmin=12.5, vmax=20, origin="lower")
+            plt.imshow(np.reshape(X_f_loc_mean, self.W_loc.shape), vmin=12.5, vmax=15, origin="lower")
             plt.title("Local forecast mean")
             plt.colorbar()
             plt.show()
 
             # Local observation
+            HX_f_loc = HX_f[d]
             HX_f_loc_mean = HX_f_mean[d]
             HX_f_loc_pert = HX_f_pert[d,:] # 1 x N_e 
 
@@ -292,7 +293,7 @@ class LEnKalman:
             HPHT = 1/(N_e-1) * HX_f_loc_pert @ HX_f_loc_pert.T # 1 x 1 
             F  = HPHT + self.R[d,d]
 
-            D = obs[d] - HX_f_loc_pert - np.random.normal(0, np.sqrt(self.R[d,d]), N_e) # 1 x N_e 
+            D = obs[d] - HX_f_loc - np.random.normal(0, np.sqrt(self.R[d,d]), N_e) # 1 x N_e 
 
             C = 1/F * D 
 
@@ -301,7 +302,7 @@ class LEnKalman:
             X_a_loc = X_f_loc + 1/(N_e-1)* X_f_loc_pert @ E # N_x x N_e 
 
             # DEBUG
-            plt.imshow(np.reshape(np.average(X_a_loc,axis=1), self.W_loc.shape), vmin=12.5, vmax=20, origin="lower")
+            plt.imshow(np.reshape(np.average(X_a_loc,axis=1), self.W_loc.shape), vmin=12.5, vmax=15, origin="lower")
             plt.title("Local analysis mean")
             plt.colorbar()
             plt.show()
