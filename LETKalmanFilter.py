@@ -5,6 +5,9 @@ Kalman filter update for advection diffusion example.
 from ETKalmanFilter import ETKalman
 import numpy as np
 
+# DEBUG 
+from matplotlib import pyplot as plt
+
 class LETKalman:
     def __init__(self, statistics, observation, scale_r):
         self.statistics = statistics
@@ -226,7 +229,6 @@ class LETKalman:
         return W_scale
 
 
-
     def filter(self, ensemble, obs):
 
         # Bookkeeping
@@ -255,7 +257,7 @@ class LETKalman:
         X_f_loc_mean_tmp = np.zeros((N_x_local))
 
         # Loop over all d
-        for d in range(self.N_y):
+        for d in range(len(obs)):
     
             L, xroll, yroll = self.all_Ls[d], self.all_xrolls[d], self.all_yrolls[d]
 
@@ -278,28 +280,27 @@ class LETKalman:
 
             # Local observation
             HX_f_loc_mean = HX_f_mean[d]
-            HX_f_loc_pert = HX_f_pert[d,:]
+            HX_f_loc_pert = np.reshape(HX_f_pert[d,:],(1,100))
 
             # LETKF
-            Rinv = 1/self.R[d,d]
+            Rinv = np.linalg.inv(np.reshape(self.R[d,d], (1,1)))
 
             y_loc = obs[d]
-            D = y_loc - HX_f_loc_mean
+            D = y_loc - HX_f_loc_mean # 1 x 1
 
-            A1 = (N_e-1)*np.eye(N_e)
-            A2 = np.dot(HX_f_loc_pert.T, np.dot(Rinv, HX_f_loc_pert))
+            A1 = (N_e-1)*np.eye(N_e) 
+            A2 = HX_f_loc_pert.T @ Rinv @ HX_f_loc_pert # N_e x N_e 
             A = A1 + A2
             P = np.linalg.inv(A)
 
-            K = np.dot(X_f_loc_pert, np.dot(P, np.dot(HX_f_loc_pert.T, Rinv)))
+            K = np.reshape(X_f_loc_pert @ P @ HX_f_loc_pert.T @ Rinv, N_x_local) # N_x_loc x 1
 
-            X_a_loc_mean = X_f_loc_mean + np.dot(K, D)
+            X_a_loc_mean = X_f_loc_mean + K * D
 
             sigma, V = np.linalg.eigh( (N_e - 1) * P )
-            X_a_loc_pert = np.dot( X_f_loc_pert, np.dot( V, np.dot( np.diag( np.sqrt( np.real(sigma) ) ), V.T )))
+            X_a_loc_pert = X_f_loc_pert @ V @ np.diag( np.sqrt( np.real(sigma) ) ) @ V.T
 
             X_a_loc = np.reshape(X_a_loc_mean,(N_x_local,1)) + X_a_loc_pert
-
 
             # Calculate weighted local analysis
             weighted_X_a_loc = X_a_loc[:,:]*(np.tile(self.W_loc.flatten().T, (N_e, 1)).T)
@@ -309,6 +310,7 @@ class LETKalman:
                 weighted_X_a_loc = np.roll(np.roll(weighted_X_a_loc[:,:].reshape((self.W_loc.shape[0], self.W_loc.shape[1], N_e)), 
                                                                                 shift=yroll, axis=0 ), 
                                                 shift=xroll, axis=1)
+
 
             X_a[:,L] += weighted_X_a_loc.reshape(self.W_loc.shape[0]*self.W_loc.shape[1], N_e).T
         # (end loop over all d)
@@ -324,3 +326,10 @@ class LETKalman:
         self.statistics.set_ensemble(X_new)
 
         return X_new
+
+
+    def serial_filter(self, ensemble, obs):
+
+        for g in range(len(self.groups)):
+            ensemble = self.filter(ensemble, obs[self.groups[g]])
+    
