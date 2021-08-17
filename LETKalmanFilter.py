@@ -97,11 +97,10 @@ class LETKalman:
         
         localIndices = np.array([[False]*nx]*ny)
         
-        #print(obs_loc_cellID)
-        loc_cell_left  = int((obs_loc[0]-boxed_r   )//dx)
-        loc_cell_right = int((obs_loc[0]+boxed_r+dx)//dx)
-        loc_cell_down  = int((obs_loc[1]-boxed_r   )//dy)
-        loc_cell_up    = int((obs_loc[1]+boxed_r+dy)//dy)
+        loc_cell_left  = int(obs_loc[0]/dx) - int((boxed_r+dx)//dx)
+        loc_cell_right = int(obs_loc[0]/dx) + int((boxed_r+dx)//dx)
+        loc_cell_down  = int(obs_loc[1]/dx) - int((boxed_r+dy)//dy)
+        loc_cell_up    = int(obs_loc[1]/dx) + int((boxed_r+dy)//dy)
 
         xranges = []
         yranges = []
@@ -146,8 +145,8 @@ class LETKalman:
         Gives a local stencil with weights based on the distGC
         """
         
-        local_nx = int(scale_r*2*1.5)+1
-        local_ny = int(scale_r*2*1.5)+1
+        local_nx = int(np.ceil(scale_r*2*1.5)//2 * 2 + 2)
+        local_ny = int(np.ceil(scale_r*2*1.5)//2 * 2 + 2)
         weights = np.zeros((local_ny, local_ny))
         
         obs_loc = np.array([local_nx*dx/2, local_ny*dy/2])
@@ -215,7 +214,7 @@ class LETKalman:
 
         # Get the shape of the local weights (drifter independent)
         W_loc = LETKalman.getLocalWeightShape(scale_r, dx, dy, nx, ny)
-        
+
         for d in range(num_drifters):
             # Get local mapping for drifter 
             L, xroll, yroll = LETKalman.getLocalIndices(observation_positions[d,:], scale_r, dx, dy, nx, ny)
