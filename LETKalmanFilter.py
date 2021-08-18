@@ -327,9 +327,3 @@ class LETKalman:
 
         return X_new
 
-
-    def serial_filter(self, ensemble, obs):
-
-        for g in range(len(self.groups)):
-            ensemble = self.filter(ensemble, obs[self.groups[g]])
-    
