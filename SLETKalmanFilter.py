@@ -108,14 +108,14 @@ class SLETKalman:
         Defines mapping from global domain (nx times ny) to local domain
         """
 
-        boxed_r = dx*scale_r*1.5
+        boxed_r = dx*np.ceil((scale_r*1.5)/2)*2 
         
         localIndices = np.array([[False]*nx]*ny)
         
-        loc_cell_left  = int(obs_loc[0]/dx) - int((boxed_r+dx)//dx)
-        loc_cell_right = int(obs_loc[0]/dx) + int((boxed_r+dx)//dx)
-        loc_cell_down  = int(obs_loc[1]/dx) - int((boxed_r+dy)//dy)
-        loc_cell_up    = int(obs_loc[1]/dx) + int((boxed_r+dy)//dy)
+        loc_cell_left  = int(np.round(obs_loc[0]/dx)) - int(np.round(boxed_r/dx))
+        loc_cell_right = int(np.round(obs_loc[0]/dx)) + int(np.round((boxed_r+dx)/dx))
+        loc_cell_down  = int(np.round(obs_loc[1]/dx)) - int(np.round(boxed_r/dy))
+        loc_cell_up    = int(np.round(obs_loc[1]/dx)) + int(np.round((boxed_r+dy)/dy))
 
         xranges = []
         yranges = []
@@ -160,8 +160,8 @@ class SLETKalman:
         Gives a local stencil with weights based on the distGC
         """
         
-        local_nx = int(np.ceil(scale_r*2*1.5)//2 * 2 + 2)
-        local_ny = int(np.ceil(scale_r*2*1.5)//2 * 2 + 2)
+        local_nx = int(np.ceil((scale_r*1.5)/2)*2 *2 + 1)
+        local_ny = int(np.ceil((scale_r*1.5)/2)*2 *2 + 1)
         weights = np.zeros((local_ny, local_ny))
         
         obs_loc = np.array([local_nx*dx/2, local_ny*dy/2])
