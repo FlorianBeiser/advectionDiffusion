@@ -210,7 +210,7 @@ class Comparer:
         axs[2].plot(X, ecdf_letkf(X))
         axs[2].set_title("LETKF ECDF")
 
-        plt.plot()
+        plt.show()
 
     
     def poi_ecdf_err(self, i):
