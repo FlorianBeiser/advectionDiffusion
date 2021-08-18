@@ -279,7 +279,7 @@ class LETKalman:
 
             # Local observation
             HX_f_loc_mean = HX_f_mean[d]
-            HX_f_loc_pert = np.reshape(HX_f_pert[d,:],(1,100))
+            HX_f_loc_pert = np.reshape(HX_f_pert[d,:],(1,N_e))
 
             # LETKF
             Rinv = np.linalg.inv(np.reshape(self.R[d,d], (1,1)))
