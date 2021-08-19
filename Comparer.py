@@ -131,7 +131,7 @@ class Comparer:
 
     def set_poi(self, pos):
         indicator_field = np.zeros((self.grid.ny, self.grid.nx))
-        indicator_field[pos[0],pos[1]] = 1.0
+        indicator_field[pos[1],pos[0]] = 1.0
 
         idx = np.where(indicator_field.flatten() != 0 )[0][0]
 
