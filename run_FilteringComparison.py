@@ -46,7 +46,7 @@ print("done\n")
 
 # Repeated ensemble runs 
 
-runningWriter = RunningWriter.RunningWriter(trials= 100)
+runningWriter = RunningWriter.RunningWriter(trials=100, N_poi=2)
 
 for r in range(runningWriter.trials):
     print("Trial ", r, "...")
@@ -75,6 +75,7 @@ for r in range(runningWriter.trials):
         sletkFilter.filter(statistics_letkf.ensemble.ensemble, observation.obses[t])
 
     # Comparison
+    print("Comparing")
     comparer = Comparer.Comparer(statistics_kf, statistics_etkf, statistics_letkf)
 
     mean_rmse_kf, runningWriter.mean_rmse_etkfs[r], runningWriter.mean_rmse_letkfs[r] = comparer.mean_rmse()
@@ -83,8 +84,9 @@ for r in range(runningWriter.trials):
     comparer.set_poi([0,0])
     comparer.set_poi([15,25])
 
-    runningWriter.ecdf_err_etkf0s[r], runningWriter.ecdf_err_letkf0s[r] = comparer.poi_ecdf_err(0)
-    runningWriter.ecdf_err_etkf1s[r], runningWriter.ecdf_err_letkf1s[r] = comparer.poi_ecdf_err(1)
-
+    runningWriter.ecdf_err_etkfs[0][r], runningWriter.ecdf_err_letkfs[0][r] = comparer.poi_ecdf_err(0)
+    runningWriter.ecdf_err_etkfs[1][r], runningWriter.ecdf_err_letkfs[1][r] = comparer.poi_ecdf_err(1)
+    
+    print("done\n")
 
 runningWriter.results2file(timestamp)
