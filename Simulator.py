@@ -5,7 +5,6 @@ and the actual model propagation.
 """
 
 import numpy as np
-import datetime
 from scipy.linalg import circulant 
 import os 
 
