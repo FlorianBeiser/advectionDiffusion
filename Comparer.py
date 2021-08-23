@@ -79,6 +79,66 @@ class Comparer:
         return mean_rmse_kf, mean_rmse_etkf, mean_rmse_letkf
 
 
+    def stddev_plots(self):
+        fig, axs = plt.subplots(2,3, figsize=(12,8))
+
+        fig00 = axs[0,0].imshow(np.reshape(self.statistics_kf.stddev, (self.grid.ny, self.grid.nx)), origin = "lower", vmin=0, vmax=0.2)
+        axs[0,0].set_title("KF Stddev")
+        ax_divider = make_axes_locatable(axs[0,0])
+        ax_cb = ax_divider.append_axes("bottom", size="10%", pad="20%")
+        plt.colorbar(fig00, cax=ax_cb, orientation="horizontal")
+
+        fig01 = axs[0,1].imshow(np.reshape(self.statistics_etkf.stddev, (self.grid.ny, self.grid.nx)), origin = "lower", vmin=0, vmax=0.2)
+        axs[0,1].set_title("ETKF Stddev")
+        ax_divider = make_axes_locatable(axs[0,1])
+        ax_cb = ax_divider.append_axes("bottom", size="10%", pad="20%")
+        plt.colorbar(fig01, cax=ax_cb, orientation="horizontal")
+
+        fig02 = axs[0,2].imshow(np.reshape(self.statistics_letkf.stddev, (self.grid.ny, self.grid.nx)), origin = "lower", vmin=0, vmax=0.2)
+        axs[0,2].set_title("LETKF Stddev")
+        ax_divider = make_axes_locatable(axs[0,2])
+        ax_cb = ax_divider.append_axes("bottom", size="10%", pad="20%")
+        plt.colorbar(fig02, cax=ax_cb, orientation="horizontal")
+
+        stddev_err_kf = np.reshape(self.statistics_kf.stddev, (self.grid.ny, self.grid.nx)) - np.reshape(self.statistics_kf.stddev, (self.grid.ny, self.grid.nx))
+
+        fig10 = axs[1,0].imshow(stddev_err_kf, origin = "lower", vmin=-0.05, vmax=0.05)
+        axs[1,0].set_title("KF Error")
+        ax_divider = make_axes_locatable(axs[1,0])
+        ax_cb = ax_divider.append_axes("bottom", size="10%", pad="20%")
+        plt.colorbar(fig10, cax=ax_cb, orientation="horizontal")
+
+        stddev_err_etkf = np.reshape(self.statistics_etkf.stddev, (self.grid.ny, self.grid.nx)) - np.reshape(self.statistics_kf.stddev, (self.grid.ny, self.grid.nx))
+
+        fig11 = axs[1,1].imshow(stddev_err_etkf, origin = "lower", vmin=-0.05, vmax=0.05)
+        axs[1,1].set_title("ETKF Error")
+        ax_divider = make_axes_locatable(axs[1,1])
+        ax_cb = ax_divider.append_axes("bottom", size="10%", pad="20%")
+        plt.colorbar(fig11, cax=ax_cb, orientation="horizontal")
+
+        stddev_err_letkf = np.reshape(self.statistics_letkf.stddev, (self.grid.ny, self.grid.nx)) - np.reshape(self.statistics_kf.stddev, (self.grid.ny, self.grid.nx))
+
+        fig12 = axs[1,2].imshow(stddev_err_letkf, origin = "lower", vmin=-0.05, vmax=0.05)
+        axs[1,2].set_title("LETKF Error")
+        ax_divider = make_axes_locatable(axs[1,2])
+        ax_cb = ax_divider.append_axes("bottom", size="10%", pad="20%")
+        plt.colorbar(fig12, cax=ax_cb, orientation="horizontal")
+
+        plt.show()
+
+
+    def stddev_rmse(self):
+        stddev_err_kf = np.reshape(self.statistics_kf.stddev, (self.grid.ny, self.grid.nx)) - np.reshape(self.statistics_kf.stddev, (self.grid.ny, self.grid.nx))
+        stddev_err_etkf = np.reshape(self.statistics_etkf.stddev, (self.grid.ny, self.grid.nx)) - np.reshape(self.statistics_kf.stddev, (self.grid.ny, self.grid.nx))
+        stddev_err_letkf = np.reshape(self.statistics_letkf.stddev, (self.grid.ny, self.grid.nx)) - np.reshape(self.statistics_kf.stddev, (self.grid.ny, self.grid.nx))
+
+        stddev_rmse_kf = np.sqrt(np.sum(stddev_err_kf**2))
+        stddev_rmse_etkf = np.sqrt(np.sum(stddev_err_etkf**2))
+        stddev_rmse_letkf = np.sqrt(np.sum(stddev_err_letkf**2))
+
+        return stddev_rmse_kf, stddev_rmse_etkf, stddev_rmse_letkf
+
+
     def cov_plots(self):
         fig, axs = plt.subplots(2,3, figsize=(12,8))
 
@@ -100,19 +160,19 @@ class Comparer:
         ax_cb = ax_divider.append_axes("bottom", size="10%", pad="20%")
         plt.colorbar(fig02, cax=ax_cb, orientation="horizontal")
 
-        fig10 = axs[1,0].imshow(self.statistics_kf.cov-self.statistics_kf.cov,vmin=0, vmax=0.005)
+        fig10 = axs[1,0].imshow(self.statistics_kf.cov-self.statistics_kf.cov,vmin=-0.005, vmax=0.005)
         axs[1,0].set_title("KF Error")
         ax_divider = make_axes_locatable(axs[1,0])
         ax_cb = ax_divider.append_axes("bottom", size="10%", pad="20%")
         plt.colorbar(fig10, cax=ax_cb, orientation="horizontal")
 
-        fig11 = axs[1,1].imshow(self.statistics_kf.cov-self.statistics_etkf.cov,vmin=0, vmax=0.005)
+        fig11 = axs[1,1].imshow(self.statistics_kf.cov-self.statistics_etkf.cov,vmin=-0.005, vmax=0.005)
         axs[1,1].set_title("ETKF Error")
         ax_divider = make_axes_locatable(axs[1,1])
         ax_cb = ax_divider.append_axes("bottom", size="10%", pad="20%")
         plt.colorbar(fig11, cax=ax_cb, orientation="horizontal")
 
-        fig12 = axs[1,2].imshow(self.statistics_kf.cov-self.statistics_letkf.cov,vmin=0, vmax=0.005)
+        fig12 = axs[1,2].imshow(self.statistics_kf.cov-self.statistics_letkf.cov,vmin=-0.005, vmax=0.005)
         axs[1,2].set_title("LETKF Error")
         ax_divider = make_axes_locatable(axs[1,2])
         ax_cb = ax_divider.append_axes("bottom", size="10%", pad="20%")
