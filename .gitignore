@@ -133,3 +133,4 @@ dmypy.json
 
 # Files for data flow 
 /experiment_files
+/figs
