@@ -79,13 +79,13 @@ class RunningWriter:
                 result_timestamp = datetime.datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
                 file = "experiment_files/experiment_" + timestamp + "/results_" + result_timestamp
 
-                table = np.vstack((as_table, \
+                table = np.column_stack((as_table, \
                     self.mean_rmse_etkfs, \
                     self.mean_rmse_letkfs, \
                     self.cov_frob_etkfs,\
                     self.cov_frob_letkfs))
 
                 for p in range(self.N_poi):
-                    table = np.vstack((table, self.ecdf_err_etkfs[p], self.ecdf_err_letkfs[p]))
+                    table = np.column_stack((table, self.ecdf_err_etkfs[p], self.ecdf_err_letkfs[p]))
 
                 np.savetxt(file, table)
