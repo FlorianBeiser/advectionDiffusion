@@ -25,6 +25,18 @@ class Observation:
         self.noise_matrix()
 
     
+    def set_regular_positions(self, xfreq, yfreq=None):
+        if yfreq is None:
+            yfreq = xfreq
+
+        poses = []
+        for j in range(int(np.ceil(self.grid.ny/yfreq))):
+            for i in range(int(np.ceil(self.grid.nx/xfreq))):
+                poses.append([i*xfreq,j*yfreq])
+        
+        self.set_positions(poses)
+
+    
     def plot_positions(self):
         plt.title("Moorings in domain (remember periodic BC)")
         plt.scatter(np.array(self.positions)[:,0],np.array(self.positions)[:,1])
