@@ -30,8 +30,8 @@ pois = [[0,0], [25,15], [0,1]]
 
 
 #mode = "ensemble_size"
-mode = "observation_size"
-#mode = "advection"
+#mode = "observation_size"
+mode = "advection"
 #mode = "model_noise"
 
 
@@ -42,7 +42,7 @@ if mode == "observation_size":
     N_ys = [2, 5, 10, 15]
     runningModelWriter = RunningWriter.RunningWriter(trials=len(N_ys), N_poi=len(pois))
 if mode == "advection":
-    vs = [[0.5,0.5],[1.0, 0.5], [1.5, 0.5], [2.0, 0.5]]
+    vs = [[0.5,0.5], [1.0, 0.5], [1.5, 0.5], [2.0, 0.5]]
     runningModelWriter = RunningWriter.RunningWriter(trials=len(vs), N_poi=len(pois))
 if mode == "model_noise":
     noise_stddevs = [0.05, 0.1, 0.25, 0.5]
@@ -155,6 +155,6 @@ if mode == "ensemble_size":
 if mode == "observation_size":
     runningModelWriter.results2file(timestamp, N_ys)
 if mode == "advection":
-    runningModelWriter.results2file(timestamp, vs[:,0])
+    runningModelWriter.results2file(timestamp, [v[0] for v in vs])
 if mode == "model_noise":
     runningModelWriter.results2file(timestamp, noise_stddevs)
