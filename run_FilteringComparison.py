@@ -26,16 +26,46 @@ print("done\n")
 
 # Repeated ensemble runs 
 
-N_es = [25, 50, 100, 250, 1000]
-
 pois = [[0,0], [25,15], [0,1]]
 
-runningModelWriter = RunningWriter.RunningWriter(trials=len(N_es), N_poi=len(pois))
+
+#mode = "ensemble_size"
+mode = "observation_size"
+#mode = "advection"
+#mode = "model_noise"
+
+
+if mode == "ensemble_size": 
+    N_es = [25, 50, 100, 250, 1000]
+    runningModelWriter = RunningWriter.RunningWriter(trials=len(N_es), N_poi=len(pois))
+if mode == "observation_size":
+    N_ys = [2, 5, 10, 15]
+    runningModelWriter = RunningWriter.RunningWriter(trials=len(N_ys), N_poi=len(pois))
+if mode == "advection":
+    vs = [[0.5,0.5],[1.0, 0.5], [1.5, 0.5], [2.0, 0.5]]
+    runningModelWriter = RunningWriter.RunningWriter(trials=len(vs), N_poi=len(pois))
+if mode == "model_noise":
+    noise_stddevs = [0.05, 0.1, 0.25, 0.5]
+    runningModelWriter = RunningWriter.RunningWriter(trials=len(noise_stddevs), N_poi=len(pois))
+
 
 for trial_model in range(runningModelWriter.trials):
     print("Changing the model! Set up ", trial_model)
 
-    N_e = N_es[trial_model]
+    if mode == "ensemble_size":
+        N_e = N_es[trial_model]
+    else:
+        N_e = 100
+
+    if mode == "observation_size":
+        observation.set_regular_positions(N_ys[trial_model])
+
+    if mode == "advection":
+        simulator.v = vs[trial_model]
+
+    if mode == "model_noise":
+        prior_args["stddev"] = noise_stddevs[trial_model]
+
 
     trials_truth = 20
     trials_init  = 5
@@ -120,4 +150,11 @@ for trial_model in range(runningModelWriter.trials):
 
     runningWriter.results2file(timestamp)
 
-runningModelWriter.results2file(timestamp, N_es)
+if mode == "ensemble_size": 
+    runningModelWriter.results2file(timestamp, N_es)
+if mode == "observation_size":
+    runningModelWriter.results2file(timestamp, N_ys)
+if mode == "advection":
+    runningModelWriter.results2file(timestamp, vs[:,0])
+if mode == "model_noise":
+    runningModelWriter.results2file(timestamp, noise_stddevs)
