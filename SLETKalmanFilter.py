@@ -4,9 +4,6 @@ Kalman filter update for advection diffusion example.
 
 import numpy as np
 
-# DEBUG 
-from matplotlib import pyplot as plt
-
 class SLETKalman:
     def __init__(self, statistics, observation, scale_r):
         self.statistics = statistics

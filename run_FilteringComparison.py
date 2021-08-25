@@ -6,6 +6,7 @@ import Statistics
 import KalmanFilter
 import ETKalmanFilter
 import SLETKalmanFilter
+import IEWParticleFilter
 
 import Comparer
 import RunningWriter
@@ -29,9 +30,9 @@ print("done\n")
 pois = [[0,0], [25,15], [0,1]]
 
 
-#mode = "ensemble_size"
+mode = "ensemble_size"
 #mode = "observation_size"
-mode = "advection"
+#mode = "advection"
 #mode = "model_noise"
 
 
@@ -67,11 +68,10 @@ for trial_model in range(runningModelWriter.trials):
         prior_args["stddev"] = noise_stddevs[trial_model]
 
 
-    trials_truth = 20
-    trials_init  = 5
+    trials_truth = 2
+    trials_init  = 2
 
     runningWriter = RunningWriter.RunningWriter(trials=trials_truth*trials_init, N_poi=len(pois))
-    runningWriter.header2file(N_e, trials_truth, trials_init, timestamp)
 
     for trail_truth in range(trials_truth):
         # Truth
@@ -123,32 +123,50 @@ for trial_model in range(runningModelWriter.trials):
                 statistics_letkf.propagate(25)
                 sletkFilter.filter(statistics_letkf.ensemble.ensemble, observation.obses[t])
 
+            # IEWPF
+            print("IEWPF DA (only dummy so far)")
+            statistics_iewpf = Statistics.Statistics(simulator, N_e)
+            statistics_iewpf.set_prior(prior_args)
+
+            iewpFilter = IEWParticleFilter.IEWParticle(statistics_iewpf, observation)
+
+            for t in range(observation.N_obs):
+                statistics_iewpf.propagate(25)
+                iewpFilter.filter(statistics_iewpf.ensemble.ensemble, observation.obses[t])
+
+
             # Comparison
             print("Comparing")
             trial = trail_truth*trials_init + trial_init
-            comparer = Comparer.Comparer(statistics_kf, statistics_etkf, statistics_letkf)
+            comparer = Comparer.Comparer(statistics_kf, statistics_etkf, statistics_letkf, statistics_iewpf)
 
-            mean_rmse_kf, runningWriter.mean_rmse_etkfs[trial], runningWriter.mean_rmse_letkfs[trial] = comparer.mean_rmse()
-            cov_frob_kf, runningWriter.cov_frob_etkfs[trial], runningWriter.cov_frob_letkfs[trial] = comparer.cov_frobenius_dist()
+            mean_rmse_kf, runningWriter.mean_rmse_etkfs[trial], runningWriter.mean_rmse_letkfs[trial], runningWriter.mean_rmse_iewpfs[trial] = comparer.mean_rmse()
+            stddev_rmse_kf, runningWriter.stddev_rmse_etkfs[trial], runningWriter.stddev_rmse_letkfs[trial], runningWriter.stddev_rmse_iewpfs[trial] = comparer.stddev_rmse()
+            cov_frob_kf, runningWriter.cov_frob_etkfs[trial], runningWriter.cov_frob_letkfs[trial], runningWriter.cov_frob_iewpfs[trial] = comparer.cov_frobenius_dist()
 
             for p in range(len(pois)):
                 comparer.set_poi(pois[p])
             
             for p in range(len(pois)):
-                runningWriter.ecdf_err_etkfs[p][trial], runningWriter.ecdf_err_letkfs[p][trial] = comparer.poi_ecdf_err(p)
+                runningWriter.ecdf_err_etkfs[p][trial], runningWriter.ecdf_err_letkfs[p][trial], runningWriter.ecdf_err_iewpfs[p][trial] = comparer.poi_ecdf_err(p)
         
             print("done\n")
 
 
     runningModelWriter.mean_rmse_etkfs[trial_model], \
     runningModelWriter.mean_rmse_letkfs[trial_model], \
+    runningModelWriter.mean_rmse_iewpfs[trial_model], \
+    runningModelWriter.stddev_rmse_etkfs[trial_model], \
+    runningModelWriter.stddev_rmse_letkfs[trial_model], \
+    runningModelWriter.stddev_rmse_iewpfs[trial_model], \
     runningModelWriter.cov_frob_etkfs[trial_model], \
     runningModelWriter.cov_frob_letkfs[trial_model], \
+    runningModelWriter.cov_frob_iewpfs[trial_model], \
     runningModelWriter.ecdf_err_etkfs[:,trial_model], \
-    runningModelWriter.ecdf_err_letkfs[:,trial_model]\
+    runningModelWriter.ecdf_err_letkfs[:,trial_model],\
+    runningModelWriter.ecdf_err_iewpfs[:,trial_model]\
     = runningWriter.results()
 
-    runningWriter.results2file(timestamp)
 
 if mode == "ensemble_size": 
     runningModelWriter.results2file(timestamp, N_es)
