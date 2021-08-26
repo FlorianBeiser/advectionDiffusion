@@ -30,17 +30,24 @@ print("done\n")
 pois = [[0,0], [25,15], [0,1]]
 
 
-mode = "ensemble_size"
-#mode = "observation_size"
-#mode = "advection"
-#mode = "model_noise"
+# Setting mode
 
+import argparse
+import sys
+
+parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser.add_argument(
+            '-m', required=True, dest='mode', choices=["ensemble_size", "observation_size", "advection", "model_noise"],
+            help='specifying which parameter is changed throughout experiments')
+
+args = parser.parse_args(sys.argv[1:])
+mode = args.mode
 
 if mode == "ensemble_size": 
     N_es = [25, 50, 100, 250, 1000]
     runningModelWriter = RunningWriter.RunningWriter(trials=len(N_es), N_poi=len(pois))
 if mode == "observation_size":
-    N_ys = [2, 5, 10, 15]
+    N_ys = [3, 4, 5, 10, 15]
     runningModelWriter = RunningWriter.RunningWriter(trials=len(N_ys), N_poi=len(pois))
 if mode == "advection":
     vs = [[0.5,0.5], [1.0, 0.5], [1.5, 0.5], [2.0, 0.5]]
@@ -50,6 +57,7 @@ if mode == "model_noise":
     runningModelWriter = RunningWriter.RunningWriter(trials=len(noise_stddevs), N_poi=len(pois))
 
 
+# Repeating ensemble runs
 for trial_model in range(runningModelWriter.trials):
     print("Changing the model! Set up ", trial_model)
 
@@ -60,6 +68,7 @@ for trial_model in range(runningModelWriter.trials):
 
     if mode == "observation_size":
         observation.set_regular_positions(N_ys[trial_model])
+        N_ys[trial_model] = observation.N_y
 
     if mode == "advection":
         simulator.v = vs[trial_model]
