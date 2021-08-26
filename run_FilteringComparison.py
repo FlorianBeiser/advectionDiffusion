@@ -68,8 +68,8 @@ for trial_model in range(runningModelWriter.trials):
         prior_args["stddev"] = noise_stddevs[trial_model]
 
 
-    trials_truth = 2
-    trials_init  = 2
+    trials_truth = 20
+    trials_init  = 5
 
     runningWriter = RunningWriter.RunningWriter(trials=trials_truth*trials_init, N_poi=len(pois))
 

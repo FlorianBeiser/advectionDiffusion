@@ -5,8 +5,9 @@ and the actual model propagation.
 """
 
 import numpy as np
-from scipy.linalg import circulant 
-import os 
+import os
+
+from scipy.linalg.special_matrices import toeplitz 
 
 import Sampler
 
@@ -41,8 +42,11 @@ class Grid:
                 Dy = dj * self.dy
                 self.dist_toepitz[j,i] = np.sqrt(Dx**2 + Dy**2)
 
-        # NOTE: circulant takes the first column but we give the first row -> transposing!
-        self.dist_mat = circulant(np.reshape(self.dist_toepitz, self.N_x)).T
+        self.dist_mat = np.zeros((self.N_x,self.N_x))
+        for j in range(self.ny):
+            toeplitz = np.roll(self.dist_toepitz,j,axis=0)
+            for i in range(self.nx):
+                self.dist_mat[j*self.nx + i] = np.reshape(np.roll(toeplitz,i,axis=1),(1,self.N_x))
 
 
 
