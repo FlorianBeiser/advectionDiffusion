@@ -100,7 +100,7 @@ class Statistics:
         plt.show()
 
 
-    def propagate(self, nt):
+    def propagate(self, nt, model_error=True):
         """Propagating the model for nt simulator time steps.
         NOTE: nt simulator steps are 1 model time step 
         wherefore a distinged (DA) model matrix is constructed"""
@@ -114,7 +114,10 @@ class Statistics:
             self.mean = self.M @ self.mean
             self.cov = self.M @ self.cov @ self.M.T + self.simulator.Q
         else:
-            forecast = self.M @ self.ensemble.ensemble + self.simulator.noise_sampler.sample(self.ensemble.N_e)
+            if model_error:
+                forecast = self.M @ self.ensemble.ensemble + self.simulator.noise_sampler.sample(self.ensemble.N_e)
+            else: 
+                forecast = self.M @ self.ensemble.ensemble
             self.ensemble.set(forecast)
             self.ensemble_statistics()
 
