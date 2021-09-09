@@ -5,6 +5,7 @@ Kalman filter update for advection diffusion example.
 import numpy as np
 
 from scipy.special import gammainc
+from scipy.special import lambertw
 from scipy.optimize import fsolve
 from scipy.linalg import sqrtm 
 
@@ -34,25 +35,41 @@ class IEWParticle:
         d = np.reshape(obs, (self.N_y,1)) - self.H @ ensemble
 
         phis = np.zeros(self.N_e)
+        etas = np.zeros((self.N_e, self.N_x))
         for e in range(self.N_e):
             phis[e] = d[:,e] @ self.S @ d[:,e]
-        cs = np.max(phis) - phis
+            etas[e] = np.random.standard_normal(self.N_x)
+
+        cs = phis - np.log(1/self.N_e)
+        c_bar = np.average(cs)
+
+        tmp = np.zeros(self.N_e)
+        for e in range(self.N_e):
+            tmp[e] = (c_bar - cs[e])/(etas[e]@etas[e]) + 1
+
+        beta = np.min(tmp)
+
+        Ds = np.zeros(self.N_e)
+        for e in range(self.N_e):
+            Ds[e] = phis[e] - (1-beta)*etas[e]@etas[e]
+        c_stars = np.max(Ds) - Ds
 
         updated_ensemble = np.zeros_like(ensemble)
         # Per ensemble member!
         for e in range(self.N_e):
             # Sampling random vectors
-            eta = np.random.standard_normal(self.N_x)
             z = np.random.standard_normal(self.N_x)
-            xi = z - eta * (z@eta)/(eta@eta)
+            xi = z - etas[e] * (z@etas[e])/(etas[e]@etas[e])
 
             # Compute alpha
-            fun = lambda alpha, m, x: gammainc(m, alpha*x)/gammainc(m, x)
-            alpha = fsolve( lambda alpha: fun(alpha, self.N_x/2, eta@eta/2) - np.exp(-cs[e]/2), 0.5)
-            
+            # fun = lambda alpha, m, x: gammainc(m, alpha*x)/gammainc(m, x)
+            # alpha = fsolve( lambda alpha: fun(alpha, self.N_x/2, etas[e]@etas[e]/2) - np.exp(-c_stars[e]/2), 0.5)
+
+            alpha = np.real( -self.N_x/(etas[e]@etas[e]) * lambertw(-(etas[e]@etas[e])/self.N_x * np.exp(-(etas[e]@etas[e])/self.N_x) * np.exp(-c_stars[e]/self.N_x) ) )
+
             # Update ensemble member
             member_proposal = ensemble[:,e] + self.Q @ self.H.T @ self.S @ d[:,e]
-            member_update = member_proposal + 1 * self.sqrtPinv @ eta + np.sqrt(alpha) * self.sqrtPinv @ xi
+            member_update = member_proposal + np.sqrt(beta) * self.sqrtPinv @ etas[e] + np.sqrt(alpha) * self.sqrtPinv @ xi
             updated_ensemble[:,e] = member_update
 
         self.statistics.set_ensemble(updated_ensemble)
