@@ -9,8 +9,10 @@ from scipy.special import lambertw
 from scipy.optimize import fsolve
 from scipy.linalg import sqrtm 
 
+import sys
+
 class IEWParticle:
-    def __init__(self, statistics, observation):
+    def __init__(self, statistics, observation, beta=None):
         self.statistics = statistics
 
         self.N_e = self.statistics.ensemble.N_e
@@ -28,6 +30,9 @@ class IEWParticle:
 
         self.S = np.linalg.inv( self.H @ self.Q @ self.H.T + observation.R)
 
+        self.beta = beta
+        self.betas = []
+
 
     def filter(self, ensemble, obs):
 
@@ -43,16 +48,24 @@ class IEWParticle:
         cs = phis - np.log(1/self.N_e)
         c_bar = np.average(cs)
 
-        tmp = np.zeros(self.N_e)
-        for e in range(self.N_e):
-            tmp[e] = (c_bar - cs[e])/(etas[e]@etas[e]) + 1
+        if self.beta is None:
+            # Target weight
+            tmp = np.zeros(self.N_e)
+            for e in range(self.N_e):
+                tmp[e] = (c_bar - cs[e])/(etas[e]@etas[e]) + 1
 
-        beta = np.min(tmp)
+            beta = np.min(tmp)
+        
+        else:
+            beta = self.beta
 
-        Ds = np.zeros(self.N_e)
+        self.betas.append(beta)
+
+        # Get c_star
+        c_stars = np.zeros(self.N_e)
         for e in range(self.N_e):
-            Ds[e] = phis[e] - (1-beta)*etas[e]@etas[e]
-        c_stars = np.max(Ds) - Ds
+            c_stars[e] = c_bar - cs[e] - (beta-1)*(etas[e]@etas[e])
+            #c_stars[e] = np.max(cs) - cs[e] - (beta-1)*(etas[e]@etas[e])
 
         updated_ensemble = np.zeros_like(ensemble)
         # Per ensemble member!
