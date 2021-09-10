@@ -140,23 +140,16 @@ for trial_model in range(runningModelWriter.trials):
             iewpFilter = IEWParticleFilter.IEWParticle(statistics_iewpf, observation)
 
             for t in range(observation.N_obs):
-                statistics_iewpf.propagate(25)
+                statistics_iewpf.propagate(25, model_error=False)
                 iewpFilter.filter(statistics_iewpf.ensemble.ensemble, observation.obses[t])
 
 
             # Comparison
             print("Comparing")
             trial = trail_truth*trials_init + trial_init
-            comparer = Comparer.Comparer(statistics_kf, statistics_etkf, statistics_letkf, statistics_iewpf)
-
-            mean_rmse_kf, runningWriter.mean_rmse_etkfs[trial], runningWriter.mean_rmse_letkfs[trial], runningWriter.mean_rmse_iewpfs[trial] = comparer.mean_rmse()
-            stddev_rmse_kf, runningWriter.stddev_rmse_etkfs[trial], runningWriter.stddev_rmse_letkfs[trial], runningWriter.stddev_rmse_iewpfs[trial] = comparer.stddev_rmse()
-            cov_frob_kf, runningWriter.cov_frob_etkfs[trial], runningWriter.cov_frob_letkfs[trial], runningWriter.cov_frob_iewpfs[trial] = comparer.cov_frobenius_dist()
-
-            for p in range(len(pois)):
-                comparer.set_poi(pois[p])
             
             for p in range(len(pois)):
+                
                 runningWriter.ecdf_err_etkfs[p][trial], runningWriter.ecdf_err_letkfs[p][trial], runningWriter.ecdf_err_iewpfs[p][trial] = comparer.poi_ecdf_err(p)
         
             print("done\n")
