@@ -133,7 +133,7 @@ for trial_model in range(runningModelWriter.trials):
                 sletkFilter.filter(statistics_letkf.ensemble.ensemble, observation.obses[t])
 
             # IEWPF
-            print("IEWPF DA (only dummy so far)")
+            print("IEWPF DA")
             statistics_iewpf = Statistics.Statistics(simulator, N_e)
             statistics_iewpf.set_prior(prior_args)
 
