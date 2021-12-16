@@ -12,8 +12,10 @@ import linecache
 from matplotlib import pyplot as plt
 from mpl_toolkits.axes_grid1.axes_divider import make_axes_locatable
 
+import copy
+
 class Statistics:
-    def __init__(self, simulator, N_e=0):
+    def __init__(self, simulator, N_e=0, safe_history=False):
         """Class for handling the mean and cov throughout times"""
         self.simulator = simulator
         
@@ -22,9 +24,23 @@ class Statistics:
         self.stddev = np.zeros([self.simulator.grid.N_x])
         self.cov    = np.zeros([self.simulator.grid.N_x,self.simulator.grid.N_x])
         
+        self.safe_history = safe_history
+        if safe_history:        
+            self.prev_mean   = np.zeros([self.simulator.grid.N_x])
+            self.prev_stddev = np.zeros([self.simulator.grid.N_x])
+            self.prev_cov    = np.zeros([self.simulator.grid.N_x,self.simulator.grid.N_x])
+            
+            self.forecast_mean   = np.zeros([self.simulator.grid.N_x])
+            self.forecast_stddev = np.zeros([self.simulator.grid.N_x])
+            self.forecast_cov    = np.zeros([self.simulator.grid.N_x,self.simulator.grid.N_x])
+
+
         # Default is analytical 
         if N_e > 0:
             self.ensemble = Ensemble.Ensemble(simulator, N_e)
+            if self.safe_history:
+                self.prev_ensemble = Ensemble.Ensemble(simulator, N_e)
+                self.forecast_ensemble = Ensemble.Ensemble(simulator, N_e)
         else:
             self.ensemble = None
             print("Please remember to set priors!")
@@ -107,6 +123,13 @@ class Statistics:
         # Construct forward step matrix (by multiple steps from simulator matrix)
         self.M = np.linalg.matrix_power(self.simulator.M, nt)
 
+        if self.safe_history:
+            self.prev_mean   = self.mean
+            self.prev_stddev = np.sqrt(np.diag(self.cov))
+            self.prev_cov    = self.cov
+            if self.ensemble is not None:
+                self.prev_ensemble.ensemble = self.ensemble.ensemble
+
         # Propagate 
         # - with model error for ensembles
         # - without model error for analytical distributions
@@ -121,6 +144,13 @@ class Statistics:
             self.ensemble.set(forecast)
             self.ensemble_statistics()
 
+        if self.safe_history:
+            self.forecast_mean   = self.mean
+            self.forecast_stddev = np.sqrt(np.diag(self.cov))
+            self.forecast_cov    = self.cov
+            if self.ensemble is not None:
+                self.forecast_ensemble.ensemble = self.ensemble.ensemble
+ 
 
 def prior_args_from_file(timestamp):
     f = "experiment_files/experiment_"+timestamp+"/setup"
