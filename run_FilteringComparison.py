@@ -29,6 +29,7 @@ print("done\n")
 
 pois = [[0,0], [25,15], [0,1]]
 
+corr_pois = [[20,10],[29,13]]
 
 # Setting mode
 
@@ -39,6 +40,11 @@ parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFo
 parser.add_argument(
             '-m', required=True, dest='mode', choices=["ensemble_size", "observation_size", "advection", "model_noise"],
             help='specifying which parameter is changed throughout experiments')
+parser.add_argument(
+            '-tt', default=20, type=int, dest='trials_truth', help='how often the truth is re-initialized in the repeated experiments')
+parser.add_argument(
+            '-ti', default=5,  type=int, dest='trials_init', help='how often the ensemble is re-initialized in the repeated experiments'
+)
 
 args = parser.parse_args(sys.argv[1:])
 mode = args.mode
@@ -77,8 +83,8 @@ for trial_model in range(runningModelWriter.trials):
         prior_args["stddev"] = noise_stddevs[trial_model]
 
 
-    trials_truth = 20
-    trials_init  = 5
+    trials_truth = args.trials_truth
+    trials_init  = args.trials_init
 
     runningWriter = RunningWriter.RunningWriter(trials=trials_truth*trials_init, N_poi=len(pois))
 
@@ -96,7 +102,7 @@ for trial_model in range(runningModelWriter.trials):
         
         # KF 
         print("KF DA")
-        statistics_kf = Statistics.Statistics(simulator)
+        statistics_kf = Statistics.Statistics(simulator, safe_history=True)
         statistics_kf.set_prior(prior_args)
 
         kalmanFilter = KalmanFilter.Kalman(statistics_kf, observation)
@@ -105,13 +111,15 @@ for trial_model in range(runningModelWriter.trials):
             statistics_kf.propagate(25)
             kalmanFilter.filter(statistics_kf.mean, statistics_kf.cov, observation.obses[t])
 
+        corr_p2p_kf = statistics_kf.evaluate_correlation(corr_pois)
+
 
         for trial_init in range(trials_init):
             print("Ensemble init ", trial_init)
 
             # ETKF 
             print("ETKF DA")
-            statistics_etkf = Statistics.Statistics(simulator, N_e)
+            statistics_etkf = Statistics.Statistics(simulator, N_e, safe_history=True)
             statistics_etkf.set_prior(prior_args)
 
             etkFilter = ETKalmanFilter.ETKalman(statistics_etkf, observation)
@@ -122,7 +130,7 @@ for trial_model in range(runningModelWriter.trials):
 
             # LETKF
             print("LETKF DA")
-            statistics_letkf = Statistics.Statistics(simulator, N_e)
+            statistics_letkf = Statistics.Statistics(simulator, N_e, safe_history=True)
             statistics_letkf.set_prior(prior_args)
 
             scale_r = 8
@@ -134,7 +142,7 @@ for trial_model in range(runningModelWriter.trials):
 
             # IEWPF
             print("IEWPF DA")
-            statistics_iewpf = Statistics.Statistics(simulator, N_e)
+            statistics_iewpf = Statistics.Statistics(simulator, N_e, safe_history=True)
             statistics_iewpf.set_prior(prior_args)
 
             iewpFilter = IEWParticleFilter.IEWParticle(statistics_iewpf, observation)
@@ -147,9 +155,19 @@ for trial_model in range(runningModelWriter.trials):
             # Comparison
             print("Comparing")
             trial = trail_truth*trials_init + trial_init
-            
+            comparer = Comparer.Comparer(statistics_kf, statistics_etkf, statistics_letkf, statistics_iewpf)
+
+            mean_rmse_kf, runningWriter.mean_rmse_etkfs[trial], runningWriter.mean_rmse_letkfs[trial], runningWriter.mean_rmse_iewpfs[trial] = comparer.mean_rmse()
+            stddev_rmse_kf, runningWriter.stddev_rmse_etkfs[trial], runningWriter.stddev_rmse_letkfs[trial], runningWriter.stddev_rmse_iewpfs[trial] = comparer.stddev_rmse()
+            cov_frob_kf, runningWriter.cov_frob_etkfs[trial], runningWriter.cov_frob_letkfs[trial], runningWriter.cov_frob_iewpfs[trial] = comparer.cov_frobenius_dist()
+            runningWriter.corr_p2p_err_etkf[trial]  = statistics_etkf.evaluate_correlation(corr_pois) - corr_p2p_kf
+            runningWriter.corr_p2p_err_letkf[trial] = statistics_letkf.evaluate_correlation(corr_pois) - corr_p2p_kf
+            runningWriter.corr_p2p_err_iewpf[trial] = statistics_iewpf.evaluate_correlation(corr_pois) - corr_p2p_kf
+
             for p in range(len(pois)):
+                comparer.set_poi(pois[p])
                 
+            for p in range(len(pois)):
                 runningWriter.ecdf_err_etkfs[p][trial], runningWriter.ecdf_err_letkfs[p][trial], runningWriter.ecdf_err_iewpfs[p][trial] = comparer.poi_ecdf_err(p)
         
             print("done\n")
@@ -166,7 +184,10 @@ for trial_model in range(runningModelWriter.trials):
     runningModelWriter.cov_frob_iewpfs[trial_model], \
     runningModelWriter.ecdf_err_etkfs[:,trial_model], \
     runningModelWriter.ecdf_err_letkfs[:,trial_model],\
-    runningModelWriter.ecdf_err_iewpfs[:,trial_model]\
+    runningModelWriter.ecdf_err_iewpfs[:,trial_model],\
+    runningModelWriter.corr_p2p_err_etkf[trial_model],\
+    runningModelWriter.corr_p2p_err_letkf[trial_model],\
+    runningModelWriter.corr_p2p_err_iewpf[trial_model]\
     = runningWriter.results()
 
 

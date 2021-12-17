@@ -81,7 +81,8 @@ class RunningWriter:
         avg_mean_rmse_etkfs, avg_mean_rmse_letkfs, avg_mean_rmse_iewpfs, \
         avg_stddev_rmse_etkfs, avg_stddev_rmse_letkfs, avg_stddev_rmse_iewpfs, \
         avg_cov_frob_etkfs, avg_cov_frob_letkfs, avg_cov_frob_iewpfs, \
-        avg_ecdf_err_etkfs, avg_ecdf_err_letkfs, avg_ecdf_err_iewpfs = self.results()
+        avg_ecdf_err_etkfs, avg_ecdf_err_letkfs, avg_ecdf_err_iewpfs, \
+        avg_corr_p2p_err_etkfs, avg_corr_p2p_err_letkfs, avg_corr_p2p_err_iewpf = self.results()
         
         if timestamp is not None:
 
