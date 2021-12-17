@@ -355,6 +355,4 @@ class Comparer:
         ecdf_err_iewpf = scipy.integrate.quad(diff_iewpf, xmin, xmax, limit=100)[0]
 
         return ecdf_err_etkf, ecdf_err_letkf, ecdf_err_iewpf
-        
-
-
+    

@@ -7,6 +7,8 @@ and the actual model propagation.
 import numpy as np
 import os
 
+from matplotlib import pyplot as plt
+
 from scipy.linalg.special_matrices import toeplitz 
 
 import Sampler
@@ -47,6 +49,23 @@ class Grid:
             toeplitz = np.roll(self.dist_toepitz,j,axis=0)
             for i in range(self.nx):
                 self.dist_mat[j*self.nx + i] = np.reshape(np.roll(toeplitz,i,axis=1),(1,self.N_x))
+    
+    def point2idx(self, points):
+        if any(isinstance(el, list) for el in points):
+            idxs = []
+            for point in points:
+                indicator_field = np.zeros((self.ny, self.nx))
+                indicator_field[point[1],point[0]] = 1.0
+                idx = np.where(indicator_field.flatten() != 0 )[0][0]
+                idxs.append(idx)
+            return idxs
+
+        else:
+            indicator_field = np.zeros((self.ny, self.nx))
+            indicator_field[points[1],points[0]] = 1.0
+            idx = np.where(indicator_field.flatten() != 0 )[0][0]
+            return idx
+
 
 
 
@@ -147,6 +166,25 @@ class Simulator:
             return (mean, cov)
         else:
             return mean
+
+
+    def plot_correlation_points(self, points):
+        """Showing point on the grid with advection field"""
+        plt.figure()
+        plt.xlim(0, self.grid.nx-1)
+        plt.ylim(0, self.grid.ny-1)
+        plt.suptitle("Points for Correlation Study")
+        plt.title("Chosen in Advection Direction")
+        freq = self.grid.nx/10
+        X, Y = np.meshgrid( np.arange(0,self.grid.nx,freq), np.arange(0,self.grid.ny,freq) )
+        plt.quiver(X.flatten(), Y.flatten(), np.repeat(self.v[0],len(X.flatten())), np.repeat(self.v[1],len(Y.flatten())))
+        i = 0
+        for point in points:
+            plt.scatter(point[0], point[1], c="red", s=150)
+            plt.text(point[0], point[1], str(i), c="black", fontsize=12)
+            i=i+1
+        plt.show()
+
 
 
     def to_file(self, timestamp):

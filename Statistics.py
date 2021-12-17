@@ -152,6 +152,33 @@ class Statistics:
                 self.forecast_ensemble.ensemble = self.ensemble.ensemble
  
 
+    def evaluate_correlation(self, points):
+        """Evaluating the correlation between p0 at t0 and p1 at t1
+        (For details see mail by Jo from 09.12.21)"""
+
+        idxs = self.simulator.grid.point2idx(points)
+
+        if self.ensemble is not None:
+            mean_point0 = self.prev_mean[idxs[0]]
+            mean_point1 = self.forecast_mean[idxs[1]]
+
+            stddev_point0 = self.prev_stddev[idxs[0]]
+            stddev_point1 = self.forecast_stddev[idxs[1]]
+
+            cov_point2point = 1/(self.ensemble.N_e-1) * (self.prev_ensemble.ensemble[idxs[0]] - mean_point0) @ (self.forecast_ensemble.ensemble[idxs[1]] - mean_point1)
+
+            corr_point2point = cov_point2point/(stddev_point0*stddev_point1)
+        else: 
+            scale0 = self.prev_stddev[idxs[0]]
+            scale1 = self.forecast_stddev[idxs[1]]
+
+            cov_point2point = (self.M @ self.prev_cov)[idxs[1],idxs[0]]
+
+            corr_point2point = cov_point2point/(scale0*scale1)
+            
+        return corr_point2point
+
+
 def prior_args_from_file(timestamp):
     f = "experiment_files/experiment_"+timestamp+"/setup"
     mean_upshift = float(linecache.getline(f, 23)[15:-1])
