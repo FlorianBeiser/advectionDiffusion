@@ -24,6 +24,10 @@ class RunningWriter:
         self.ecdf_err_letkfs  = np.zeros((N_poi, trials))
         self.ecdf_err_iewpfs  = np.zeros((N_poi, trials))
 
+        self.corr_p2p_err_etkf  = np.zeros(trials)
+        self.corr_p2p_err_letkf = np.zeros(trials)
+        self.corr_p2p_err_iewpf = np.zeros(trials)
+
 
     def header2file(self, N_e, trails_truth, trails_init, timestamp=None):
         if timestamp is not None:
@@ -61,10 +65,15 @@ class RunningWriter:
             avg_ecdf_err_letkfs.append(np.average(self.ecdf_err_letkfs[p]))
             avg_ecdf_err_iewpfs.append(np.average(self.ecdf_err_iewpfs[p]))
             
+        avg_corr_p2p_err_etkfs  = np.average(self.corr_p2p_err_etkf)
+        avg_corr_p2p_err_letkfs = np.average(self.corr_p2p_err_letkf)
+        avg_corr_p2p_err_iewpf  = np.average(self.corr_p2p_err_iewpf)
+
         return avg_mean_rmse_etkfs, avg_mean_rmse_letkfs, avg_mean_rmse_iewpfs, \
                 avg_stddev_rmse_etkfs, avg_stddev_rmse_letkfs, avg_stddev_rmse_iewpfs, \
                 avg_cov_frob_etkfs, avg_cov_frob_letkfs, avg_cov_frob_iewpfs, \
-                avg_ecdf_err_etkfs, avg_ecdf_err_letkfs, avg_ecdf_err_iewpfs
+                avg_ecdf_err_etkfs, avg_ecdf_err_letkfs, avg_ecdf_err_iewpfs, \
+                avg_corr_p2p_err_etkfs, avg_corr_p2p_err_letkfs, avg_corr_p2p_err_iewpf
 
 
     def results2file(self, timestamp=None, as_table=None):
