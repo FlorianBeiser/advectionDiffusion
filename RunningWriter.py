@@ -82,7 +82,7 @@ class RunningWriter:
         avg_stddev_rmse_etkfs, avg_stddev_rmse_letkfs, avg_stddev_rmse_iewpfs, \
         avg_cov_frob_etkfs, avg_cov_frob_letkfs, avg_cov_frob_iewpfs, \
         avg_ecdf_err_etkfs, avg_ecdf_err_letkfs, avg_ecdf_err_iewpfs, \
-        avg_corr_p2p_err_etkfs, avg_corr_p2p_err_letkfs, avg_corr_p2p_err_iewpf = self.results()
+        avg_corr_p2p_err_etkfs, avg_corr_p2p_err_letkfs, avg_corr_p2p_err_iewpfs = self.results()
         
         if timestamp is not None:
 
@@ -111,6 +111,11 @@ class RunningWriter:
                     f.write("ECDF Dist at PoI" + str(p) + " ETKF  = " + str(avg_ecdf_err_etkfs[p]) + "\n")
                     f.write("ECDF Dist at PoI" + str(p) + " LETKF = " + str(avg_ecdf_err_letkfs[p]) + "\n")
                     f.write("ECDF Dist at PoI" + str(p) + " IEWPF = " + str(avg_ecdf_err_iewpfs[p]) + "\n")
+
+                f.write("Correlation error from point to point ETKF  = " + str(avg_corr_p2p_err_etkfs) + "\n")
+                f.write("Correlation error from point to point LETKF = " + str(avg_corr_p2p_err_letkfs) + "\n")
+                f.write("Correlation error from point to point IEWPF = " + str(avg_corr_p2p_err_iewpfs) + "\n")
+                f.write("\n")
             
             else:
                 result_timestamp = datetime.datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
@@ -129,5 +134,7 @@ class RunningWriter:
 
                 for p in range(self.N_poi):
                     table = np.column_stack((table, self.ecdf_err_etkfs[p], self.ecdf_err_letkfs[p], self.ecdf_err_iewpfs[p]))
+
+                table = np.column_stack((table, self.corr_p2p_err_etkf, self.corr_p2p_err_letkf, self.corr_p2p_err_iewpf))
 
                 np.savetxt(file, table)
