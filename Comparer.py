@@ -203,25 +203,25 @@ class Comparer:
         plt.colorbar(fig03, cax=ax_cb, orientation="horizontal")
 
 
-        fig10 = axs[1,0].imshow(abs(self.statistics_kf.cov-self.statistics_kf.cov),vmin=0.0, vmax=0.005)
+        fig10 = axs[1,0].imshow(self.statistics_kf.cov-self.statistics_kf.cov,vmin=-0.005, vmax=0.005)
         axs[1,0].set_title("KF Error")
         ax_divider = make_axes_locatable(axs[1,0])
         ax_cb = ax_divider.append_axes("bottom", size="10%", pad="20%")
         plt.colorbar(fig10, cax=ax_cb, orientation="horizontal")
 
-        fig11 = axs[1,1].imshow(abs(self.statistics_kf.cov-self.statistics_etkf.cov),vmin=0.0, vmax=0.005)
+        fig11 = axs[1,1].imshow(self.statistics_kf.cov-self.statistics_etkf.cov,vmin=-0.005, vmax=0.005)
         axs[1,1].set_title("ETKF Error")
         ax_divider = make_axes_locatable(axs[1,1])
         ax_cb = ax_divider.append_axes("bottom", size="10%", pad="20%")
         plt.colorbar(fig11, cax=ax_cb, orientation="horizontal")
 
-        fig12 = axs[1,2].imshow(abs(self.statistics_kf.cov-self.statistics_letkf.cov),vmin=0.0, vmax=0.005)
+        fig12 = axs[1,2].imshow(self.statistics_kf.cov-self.statistics_letkf.cov,vmin=-0.005, vmax=0.005)
         axs[1,2].set_title("LETKF Error")
         ax_divider = make_axes_locatable(axs[1,2])
         ax_cb = ax_divider.append_axes("bottom", size="10%", pad="20%")
         plt.colorbar(fig12, cax=ax_cb, orientation="horizontal")
 
-        fig13 = axs[1,3].imshow(abs(self.statistics_kf.cov-self.statistics_iewpf.cov),vmin=0.0, vmax=0.005)
+        fig13 = axs[1,3].imshow(self.statistics_kf.cov-self.statistics_iewpf.cov,vmin=-0.005, vmax=0.005)
         axs[1,3].set_title("IEWPF Error")
         ax_divider = make_axes_locatable(axs[1,3])
         ax_cb = ax_divider.append_axes("bottom", size="10%", pad="20%")
