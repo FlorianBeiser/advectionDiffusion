@@ -2,6 +2,7 @@ import numpy as np
 
 from matplotlib import pyplot as plt
 from mpl_toolkits.axes_grid1.axes_divider import make_axes_locatable
+from mpl_toolkits.axes_grid1 import AxesGrid
 
 import scipy.stats
 
@@ -19,6 +20,8 @@ class Comparer:
         self.grid = self.statistics_kf.simulator.grid
 
         self.poi = []
+
+        self.corr_ref_pois = []
 
     def mean_plots(self):
         fig, axs = plt.subplots(2,4, figsize=(12,8))
@@ -50,7 +53,7 @@ class Comparer:
 
         mean_err_kf = np.reshape(self.statistics_kf.mean, (self.grid.ny, self.grid.nx)) - np.reshape(self.statistics_kf.mean, (self.grid.ny, self.grid.nx))
 
-        fig10 = axs[1,0].imshow(mean_err_kf, origin = "lower", vmin=-0.1, vmax=0.1)
+        fig10 = axs[1,0].imshow(mean_err_kf, origin = "lower", vmin=-0.1, vmax=0.1, cmap="bwr")
         axs[1,0].set_title("KF Error")
         ax_divider = make_axes_locatable(axs[1,0])
         ax_cb = ax_divider.append_axes("bottom", size="10%", pad="20%")
@@ -58,7 +61,7 @@ class Comparer:
 
         mean_err_etkf = np.reshape(self.statistics_etkf.mean, (self.grid.ny, self.grid.nx)) - np.reshape(self.statistics_kf.mean, (self.grid.ny, self.grid.nx))
 
-        fig11 = axs[1,1].imshow(mean_err_etkf, origin = "lower", vmin=-0.1, vmax=0.1)
+        fig11 = axs[1,1].imshow(mean_err_etkf, origin = "lower", vmin=-0.1, vmax=0.1, cmap="bwr")
         axs[1,1].set_title("ETKF Error")
         ax_divider = make_axes_locatable(axs[1,1])
         ax_cb = ax_divider.append_axes("bottom", size="10%", pad="20%")
@@ -66,7 +69,7 @@ class Comparer:
 
         mean_err_letkf = np.reshape(self.statistics_letkf.mean, (self.grid.ny, self.grid.nx)) - np.reshape(self.statistics_kf.mean, (self.grid.ny, self.grid.nx))
 
-        fig12 = axs[1,2].imshow(mean_err_letkf, origin = "lower", vmin=-0.1, vmax=0.1)
+        fig12 = axs[1,2].imshow(mean_err_letkf, origin = "lower", vmin=-0.1, vmax=0.1, cmap="bwr")
         axs[1,2].set_title("LETKF Error")
         ax_divider = make_axes_locatable(axs[1,2])
         ax_cb = ax_divider.append_axes("bottom", size="10%", pad="20%")
@@ -74,7 +77,7 @@ class Comparer:
 
         mean_err_iewpf = np.reshape(self.statistics_iewpf.mean, (self.grid.ny, self.grid.nx)) - np.reshape(self.statistics_kf.mean, (self.grid.ny, self.grid.nx))
 
-        fig13 = axs[1,3].imshow(mean_err_iewpf, origin = "lower", vmin=-0.1, vmax=0.1)
+        fig13 = axs[1,3].imshow(mean_err_iewpf, origin = "lower", vmin=-0.1, vmax=0.1, cmap="bwr")
         axs[1,3].set_title("IEWPF Error")
         ax_divider = make_axes_locatable(axs[1,3])
         ax_cb = ax_divider.append_axes("bottom", size="10%", pad="20%")
@@ -127,7 +130,7 @@ class Comparer:
 
         stddev_err_kf = np.reshape(self.statistics_kf.stddev, (self.grid.ny, self.grid.nx)) - np.reshape(self.statistics_kf.stddev, (self.grid.ny, self.grid.nx))
 
-        fig10 = axs[1,0].imshow(stddev_err_kf, origin = "lower", vmin=-0.05, vmax=0.05)
+        fig10 = axs[1,0].imshow(stddev_err_kf, origin = "lower", vmin=-0.05, vmax=0.05, cmap="bwr")
         axs[1,0].set_title("KF Error")
         ax_divider = make_axes_locatable(axs[1,0])
         ax_cb = ax_divider.append_axes("bottom", size="10%", pad="20%")
@@ -135,7 +138,7 @@ class Comparer:
 
         stddev_err_etkf = np.reshape(self.statistics_etkf.stddev, (self.grid.ny, self.grid.nx)) - np.reshape(self.statistics_kf.stddev, (self.grid.ny, self.grid.nx))
 
-        fig11 = axs[1,1].imshow(stddev_err_etkf, origin = "lower", vmin=-0.05, vmax=0.05)
+        fig11 = axs[1,1].imshow(stddev_err_etkf, origin = "lower", vmin=-0.05, vmax=0.05, cmap="bwr")
         axs[1,1].set_title("ETKF Error")
         ax_divider = make_axes_locatable(axs[1,1])
         ax_cb = ax_divider.append_axes("bottom", size="10%", pad="20%")
@@ -143,7 +146,7 @@ class Comparer:
 
         stddev_err_letkf = np.reshape(self.statistics_letkf.stddev, (self.grid.ny, self.grid.nx)) - np.reshape(self.statistics_kf.stddev, (self.grid.ny, self.grid.nx))
 
-        fig12 = axs[1,2].imshow(stddev_err_letkf, origin = "lower", vmin=-0.05, vmax=0.05)
+        fig12 = axs[1,2].imshow(stddev_err_letkf, origin = "lower", vmin=-0.05, vmax=0.05, cmap="bwr")
         axs[1,2].set_title("LETKF Error")
         ax_divider = make_axes_locatable(axs[1,2])
         ax_cb = ax_divider.append_axes("bottom", size="10%", pad="20%")
@@ -151,7 +154,7 @@ class Comparer:
 
         stddev_err_iewpf = np.reshape(self.statistics_iewpf.stddev, (self.grid.ny, self.grid.nx)) - np.reshape(self.statistics_kf.stddev, (self.grid.ny, self.grid.nx))
 
-        fig13 = axs[1,3].imshow(stddev_err_iewpf, origin = "lower", vmin=-0.05, vmax=0.05)
+        fig13 = axs[1,3].imshow(stddev_err_iewpf, origin = "lower", vmin=-0.05, vmax=0.05, cmap="bwr")
         axs[1,3].set_title("LETKF Error")
         ax_divider = make_axes_locatable(axs[1,3])
         ax_cb = ax_divider.append_axes("bottom", size="10%", pad="20%")
@@ -203,25 +206,25 @@ class Comparer:
         plt.colorbar(fig03, cax=ax_cb, orientation="horizontal")
 
 
-        fig10 = axs[1,0].imshow(self.statistics_kf.cov-self.statistics_kf.cov,vmin=-0.005, vmax=0.005)
+        fig10 = axs[1,0].imshow(self.statistics_kf.cov-self.statistics_kf.cov,vmin=-0.005, vmax=0.005, cmap="bwr")
         axs[1,0].set_title("KF Error")
         ax_divider = make_axes_locatable(axs[1,0])
         ax_cb = ax_divider.append_axes("bottom", size="10%", pad="20%")
         plt.colorbar(fig10, cax=ax_cb, orientation="horizontal")
 
-        fig11 = axs[1,1].imshow(self.statistics_kf.cov-self.statistics_etkf.cov,vmin=-0.005, vmax=0.005)
+        fig11 = axs[1,1].imshow(self.statistics_kf.cov-self.statistics_etkf.cov,vmin=-0.005, vmax=0.005, cmap="bwr")
         axs[1,1].set_title("ETKF Error")
         ax_divider = make_axes_locatable(axs[1,1])
         ax_cb = ax_divider.append_axes("bottom", size="10%", pad="20%")
         plt.colorbar(fig11, cax=ax_cb, orientation="horizontal")
 
-        fig12 = axs[1,2].imshow(self.statistics_kf.cov-self.statistics_letkf.cov,vmin=-0.005, vmax=0.005)
+        fig12 = axs[1,2].imshow(self.statistics_kf.cov-self.statistics_letkf.cov,vmin=-0.005, vmax=0.005, cmap="bwr")
         axs[1,2].set_title("LETKF Error")
         ax_divider = make_axes_locatable(axs[1,2])
         ax_cb = ax_divider.append_axes("bottom", size="10%", pad="20%")
         plt.colorbar(fig12, cax=ax_cb, orientation="horizontal")
 
-        fig13 = axs[1,3].imshow(self.statistics_kf.cov-self.statistics_iewpf.cov,vmin=-0.005, vmax=0.005)
+        fig13 = axs[1,3].imshow(self.statistics_kf.cov-self.statistics_iewpf.cov,vmin=-0.005, vmax=0.005, cmap="bwr")
         axs[1,3].set_title("IEWPF Error")
         ax_divider = make_axes_locatable(axs[1,3])
         ax_cb = ax_divider.append_axes("bottom", size="10%", pad="20%")
@@ -251,7 +254,8 @@ class Comparer:
     def poi_plot(self, observation=None):
         plt.imshow(np.reshape(self.statistics_kf.mean, (self.grid.ny, self.grid.nx)), origin = "lower", vmin=10, vmax=15)
         if observation is not None:
-            plt.scatter(observation.positions[:,0],observation.positions[:,1], c="red")
+            for pos in observation.positions:
+                plt.scatter(pos[0],pos[1], c="red")
         plt.xlim(0, self.grid.nx-1)
         plt.ylim(0, self.grid.ny-1)
 
@@ -356,3 +360,70 @@ class Comparer:
 
         return ecdf_err_etkf, ecdf_err_letkf, ecdf_err_iewpf
     
+
+    def set_corr_ref_pois(self, corr_ref_pois):
+
+        self.corr_ref_pois = corr_ref_pois
+
+
+    def corr_p2p_err(self, i):
+
+        corr_grid_kf = np.zeros((self.grid.nx, self.grid.ny))
+        corr_grid_etkf = np.zeros((self.grid.nx, self.grid.ny))
+        corr_grid_letkf = np.zeros((self.grid.nx, self.grid.ny))
+        corr_grid_iewpf = np.zeros((self.grid.nx, self.grid.ny))
+        for x in range(self.grid.nx):
+            for y in range(self.grid.ny):
+                corr_grid_kf[x,y] = self.statistics_kf.evaluate_correlation([self.corr_ref_pois[i],[x,y]])
+                corr_grid_etkf[x,y] = self.statistics_etkf.evaluate_correlation([self.corr_ref_pois[i],[x,y]])
+                corr_grid_letkf[x,y] = self.statistics_letkf.evaluate_correlation([self.corr_ref_pois[i],[x,y]])
+                corr_grid_iewpf[x,y] = self.statistics_iewpf.evaluate_correlation([self.corr_ref_pois[i],[x,y]])
+
+        corr_p2p_err_etkf = np.linalg.norm(corr_grid_kf - corr_grid_etkf)
+        corr_p2p_err_letkf = np.linalg.norm(corr_grid_kf - corr_grid_letkf)
+        corr_p2p_err_iewpf = np.linalg.norm(corr_grid_kf - corr_grid_iewpf)
+
+        return corr_p2p_err_etkf, corr_p2p_err_letkf, corr_p2p_err_iewpf
+
+
+    def corr_p2p_plot(self, i, observation=None):
+
+        corr_grid_kf = np.zeros((self.grid.nx, self.grid.ny))
+        corr_grid_etkf = np.zeros((self.grid.nx, self.grid.ny))
+        corr_grid_letkf = np.zeros((self.grid.nx, self.grid.ny))
+        corr_grid_iewpf = np.zeros((self.grid.nx, self.grid.ny))
+        for x in range(self.grid.nx):
+            for y in range(self.grid.ny):
+                corr_grid_kf[x,y] = self.statistics_kf.evaluate_correlation([self.corr_ref_pois[i],[x,y]])
+                corr_grid_etkf[x,y] = self.statistics_etkf.evaluate_correlation([self.corr_ref_pois[i],[x,y]])
+                corr_grid_letkf[x,y] = self.statistics_letkf.evaluate_correlation([self.corr_ref_pois[i],[x,y]])
+                corr_grid_iewpf[x,y] = self.statistics_iewpf.evaluate_correlation([self.corr_ref_pois[i],[x,y]])
+
+        fig = plt.figure(figsize=(8,4))
+
+        axs = AxesGrid(fig, (0.0,0.0,1.0,1.0), nrows_ncols=(1,4), axes_pad=0.1,
+            cbar_mode="single", cbar_location="right", cbar_pad=0.1)
+
+        fig0 = axs[0].imshow(corr_grid_kf.T, vmin=-1, vmax=1, cmap="seismic", origin="lower")
+        axs[0].set_title("Kalman")
+        axs[0].scatter(self.corr_ref_pois[i][0], self.corr_ref_pois[i][1], s=100, c="black", marker="x")
+        if observation is not None:
+            axs[0].scatter(np.array(observation.positions)[:,0],np.array(observation.positions)[:,1], c="black", s=30)
+
+        fig1 = axs[1].imshow(corr_grid_etkf.T, vmin=-1, vmax=1, cmap="seismic", origin="lower")
+        axs[1].set_title("ETKF")
+        axs[1].scatter(self.corr_ref_pois[i][0], self.corr_ref_pois[i][1], s=100, c="black", marker="x")
+
+        fig2 = axs[2].imshow(corr_grid_letkf.T, vmin=-1, vmax=1, cmap="seismic", origin="lower")
+        axs[2].set_title("LETKF")
+        axs[2].scatter(self.corr_ref_pois[i][0], self.corr_ref_pois[i][1], s=100, c="black", marker="x")
+
+        fig3 = axs[3].imshow(corr_grid_iewpf.T, vmin=-1, vmax=1, cmap="seismic", origin="lower")
+        axs[3].set_title("IEWPF")
+        axs[3].scatter(self.corr_ref_pois[i][0], self.corr_ref_pois[i][1], s=100, c="black", marker="x")
+
+        cbar = axs[0].cax.colorbar(fig3)
+
+        plt.show()
+
+        return corr_grid_kf, corr_grid_etkf, corr_grid_letkf, corr_grid_iewpf

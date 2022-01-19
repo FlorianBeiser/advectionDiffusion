@@ -145,11 +145,25 @@ class Statistics:
             self.ensemble_statistics()
 
         if self.safe_history:
-            self.forecast_mean   = self.mean
-            self.forecast_stddev = np.sqrt(np.diag(self.cov))
-            self.forecast_cov    = self.cov
-            if self.ensemble is not None:
-                self.forecast_ensemble.ensemble = self.ensemble.ensemble
+            
+            if self.ensemble is None:
+                self.forecast_mean   = self.mean
+                self.forecast_stddev = np.sqrt(np.diag(self.cov))
+                self.forecast_cov    = self.cov
+
+            elif self.ensemble is not None:
+                if not model_error:
+                    forecast = forecast + self.simulator.noise_sampler.sample(self.ensemble.N_e)
+                    print("Model error in historical forecast added")
+
+                self.forecast_ensemble.ensemble = forecast
+
+                self.forecast_mean = np.average(self.forecast_ensemble.ensemble, axis = 1)
+                if self.forecast_ensemble.N_e > 1: 
+                    self.forecast_cov = 1/(self.forecast_ensemble.N_e-1)*\
+                        (self.forecast_ensemble.ensemble - np.reshape(self.forecast_mean, (self.simulator.grid.N_x,1))) \
+                        @ (self.forecast_ensemble.ensemble - np.reshape(self.forecast_mean, (self.simulator.grid.N_x,1))).transpose()
+                    self.forecast_stddev = np.sqrt(np.diag(self.forecast_cov))
  
 
     def evaluate_correlation(self, points):

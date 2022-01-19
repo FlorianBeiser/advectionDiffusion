@@ -29,7 +29,7 @@ print("done\n")
 
 pois = [[0,0], [25,15], [0,1]]
 
-corr_pois = [[20,10],[29,13]]
+corr_ref_pois = [[20,10],[21,10],[25,15]]
 
 # Setting mode
 
@@ -50,17 +50,17 @@ args = parser.parse_args(sys.argv[1:])
 mode = args.mode
 
 if mode == "ensemble_size": 
-    N_es = [25, 50, 100, 250, 1000]
-    runningModelWriter = RunningWriter.RunningWriter(trials=len(N_es), N_poi=len(pois))
+    N_es = [25, 50, 100, 250, 1000, 5000]
+    runningModelWriter = RunningWriter.RunningWriter(trials=len(N_es), N_poi=len(pois), N_corr_poi=len(corr_ref_pois))
 if mode == "observation_size":
     N_ys = [3, 4, 5, 10, 15]
-    runningModelWriter = RunningWriter.RunningWriter(trials=len(N_ys), N_poi=len(pois))
+    runningModelWriter = RunningWriter.RunningWriter(trials=len(N_ys), N_poi=len(pois), N_corr_poi=len(corr_ref_pois))
 if mode == "advection":
     vs = [[0.5,0.5], [1.0, 0.5], [1.5, 0.5], [2.0, 0.5]]
-    runningModelWriter = RunningWriter.RunningWriter(trials=len(vs), N_poi=len(pois))
+    runningModelWriter = RunningWriter.RunningWriter(trials=len(vs), N_poi=len(pois), N_corr_poi=len(corr_ref_pois))
 if mode == "model_noise":
     noise_stddevs = [0.05, 0.1, 0.25, 0.5]
-    runningModelWriter = RunningWriter.RunningWriter(trials=len(noise_stddevs), N_poi=len(pois))
+    runningModelWriter = RunningWriter.RunningWriter(trials=len(noise_stddevs), N_poi=len(pois), N_corr_poi=len(corr_ref_pois))
 
 
 # Repeating ensemble runs
@@ -86,7 +86,7 @@ for trial_model in range(runningModelWriter.trials):
     trials_truth = args.trials_truth
     trials_init  = args.trials_init
 
-    runningWriter = RunningWriter.RunningWriter(trials=trials_truth*trials_init, N_poi=len(pois))
+    runningWriter = RunningWriter.RunningWriter(trials=trials_truth*trials_init, N_poi=len(pois), N_corr_poi=len(corr_ref_pois))
 
     for trail_truth in range(trials_truth):
         # Truth
@@ -110,8 +110,6 @@ for trial_model in range(runningModelWriter.trials):
         for t in range(observation.N_obs):
             statistics_kf.propagate(25)
             kalmanFilter.filter(statistics_kf.mean, statistics_kf.cov, observation.obses[t])
-
-        corr_p2p_kf = statistics_kf.evaluate_correlation(corr_pois)
 
 
         for trial_init in range(trials_init):
@@ -160,16 +158,18 @@ for trial_model in range(runningModelWriter.trials):
             mean_rmse_kf, runningWriter.mean_rmse_etkfs[trial], runningWriter.mean_rmse_letkfs[trial], runningWriter.mean_rmse_iewpfs[trial] = comparer.mean_rmse()
             stddev_rmse_kf, runningWriter.stddev_rmse_etkfs[trial], runningWriter.stddev_rmse_letkfs[trial], runningWriter.stddev_rmse_iewpfs[trial] = comparer.stddev_rmse()
             cov_frob_kf, runningWriter.cov_frob_etkfs[trial], runningWriter.cov_frob_letkfs[trial], runningWriter.cov_frob_iewpfs[trial] = comparer.cov_frobenius_dist()
-            runningWriter.corr_p2p_err_etkf[trial]  = statistics_etkf.evaluate_correlation(corr_pois) - corr_p2p_kf
-            runningWriter.corr_p2p_err_letkf[trial] = statistics_letkf.evaluate_correlation(corr_pois) - corr_p2p_kf
-            runningWriter.corr_p2p_err_iewpf[trial] = statistics_iewpf.evaluate_correlation(corr_pois) - corr_p2p_kf
 
             for p in range(len(pois)):
                 comparer.set_poi(pois[p])
                 
             for p in range(len(pois)):
                 runningWriter.ecdf_err_etkfs[p][trial], runningWriter.ecdf_err_letkfs[p][trial], runningWriter.ecdf_err_iewpfs[p][trial] = comparer.poi_ecdf_err(p)
-        
+
+            comparer.set_corr_ref_pois(corr_ref_pois)
+
+            for p in range(len(corr_ref_pois)):
+                runningWriter.corr_p2p_err_etkf[p][trial], runningWriter.corr_p2p_err_letkf[p][trial], runningWriter.corr_p2p_err_iewpf[p][trial] = comparer.corr_p2p_err(p)
+
             print("done\n")
 
 
@@ -185,9 +185,9 @@ for trial_model in range(runningModelWriter.trials):
     runningModelWriter.ecdf_err_etkfs[:,trial_model], \
     runningModelWriter.ecdf_err_letkfs[:,trial_model],\
     runningModelWriter.ecdf_err_iewpfs[:,trial_model],\
-    runningModelWriter.corr_p2p_err_etkf[trial_model],\
-    runningModelWriter.corr_p2p_err_letkf[trial_model],\
-    runningModelWriter.corr_p2p_err_iewpf[trial_model]\
+    runningModelWriter.corr_p2p_err_etkf[:,trial_model],\
+    runningModelWriter.corr_p2p_err_letkf[:,trial_model],\
+    runningModelWriter.corr_p2p_err_iewpf[:,trial_model]\
     = runningWriter.results()
 
 
