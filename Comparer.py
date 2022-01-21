@@ -307,9 +307,13 @@ class Comparer:
                     loc=self.statistics_kf.mean[self.poi[i]], \
                     scale=self.statistics_kf.stddev[self.poi[i]])
 
-        ecdf_etkf = ECDF(self.statistics_etkf.ensemble.ensemble[self.poi[i],:])
-        ecdf_letkf = ECDF(self.statistics_letkf.ensemble.ensemble[self.poi[i],:])
-        ecdf_iewpf = ECDF(self.statistics_iewpf.ensemble.ensemble[self.poi[i],:])
+        ecdf_etkf_values  = self.statistics_etkf.ensemble.ensemble[self.poi[i],:]
+        ecdf_letkf_values = self.statistics_letkf.ensemble.ensemble[self.poi[i],:]
+        ecdf_iewpf_values = self.statistics_iewpf.ensemble.ensemble[self.poi[i],:]
+
+        ecdf_etkf  = ECDF(ecdf_etkf_values)
+        ecdf_letkf = ECDF(ecdf_letkf_values)
+        ecdf_iewpf = ECDF(ecdf_iewpf_values)
 
         xmin = self.statistics_kf.mean[self.poi[i]] - 3*self.statistics_kf.stddev[self.poi[i]]
         xmax = self.statistics_kf.mean[self.poi[i]] + 3*self.statistics_kf.stddev[self.poi[i]]
@@ -335,6 +339,8 @@ class Comparer:
         axs[3].set_title("IEWPF ECDF")
 
         plt.show()
+
+        return cdf, np.sort(ecdf_etkf_values), np.sort(ecdf_letkf_values), np.sort(ecdf_iewpf_values)
 
     
     def poi_ecdf_err(self, i):
