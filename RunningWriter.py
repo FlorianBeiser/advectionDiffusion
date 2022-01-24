@@ -70,9 +70,9 @@ class RunningWriter:
         avg_corr_p2p_err_letkfs = []
         avg_corr_p2p_err_iewpfs  = []
         for p in range(self.N_corr_poi):
-            avg_corr_p2p_err_etkfs.append(np.average(self.corr_p2p_err_etkf))
-            avg_corr_p2p_err_letkfs.append(np.average(self.corr_p2p_err_letkf))
-            avg_corr_p2p_err_iewpfs.append(np.average(self.corr_p2p_err_iewpf))
+            avg_corr_p2p_err_etkfs.append(np.average(self.corr_p2p_err_etkf[p]))
+            avg_corr_p2p_err_letkfs.append(np.average(self.corr_p2p_err_letkf[p]))
+            avg_corr_p2p_err_iewpfs.append(np.average(self.corr_p2p_err_iewpf[p]))
 
         return avg_mean_rmse_etkfs, avg_mean_rmse_letkfs, avg_mean_rmse_iewpfs, \
                 avg_stddev_rmse_etkfs, avg_stddev_rmse_letkfs, avg_stddev_rmse_iewpfs, \
