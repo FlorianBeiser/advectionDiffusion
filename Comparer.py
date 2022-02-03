@@ -85,6 +85,8 @@ class Comparer:
 
         plt.show()
 
+        return mean_err_etkf, mean_err_letkf, mean_err_iewpf
+
     
     def mean_rmse(self):
         mean_err_kf = np.reshape(self.statistics_kf.mean, (self.grid.ny, self.grid.nx)) - np.reshape(self.statistics_kf.mean, (self.grid.ny, self.grid.nx))
