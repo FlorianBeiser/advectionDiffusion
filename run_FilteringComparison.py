@@ -147,7 +147,7 @@ for trial_model in range(runningModelWriter.trials):
             statistics_iewpf = Statistics.Statistics(simulator, N_e, safe_history=True)
             statistics_iewpf.set_prior(prior_args)
 
-            iewpFilter = IEWParticleFilter.IEWParticle(statistics_iewpf, observation)
+            iewpFilter = IEWParticleFilter.IEWParticle(statistics_iewpf, observation, beta=0.55)
 
             for t in range(observation.N_obs):
                 statistics_iewpf.propagate(25, model_error=False)
