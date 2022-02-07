@@ -12,14 +12,27 @@ class RunningWriter:
         self.mean_rmse_etkfs  = np.zeros(trials)
         self.mean_rmse_letkfs = np.zeros(trials)
         self.mean_rmse_iewpfs = np.zeros(trials)
+        self.mean_rmse_mcs    = np.zeros(trials)
 
         self.stddev_rmse_etkfs  = np.zeros(trials)
         self.stddev_rmse_letkfs = np.zeros(trials)
         self.stddev_rmse_iewpfs = np.zeros(trials)
+        self.stddev_rmse_mcs    = np.zeros(trials)
 
         self.cov_frob_etkfs   = np.zeros(trials)
         self.cov_frob_letkfs  = np.zeros(trials)
         self.cov_frob_iewpfs  = np.zeros(trials)
+        self.cov_frob_mcs     = np.zeros(trials)
+
+        self.cov_frob_etkfs_close   = np.zeros(trials)
+        self.cov_frob_letkfs_close  = np.zeros(trials)
+        self.cov_frob_iewpfs_close  = np.zeros(trials)
+        self.cov_frob_mcs_close     = np.zeros(trials)
+
+        self.cov_frob_etkfs_far   = np.zeros(trials)
+        self.cov_frob_letkfs_far  = np.zeros(trials)
+        self.cov_frob_iewpfs_far  = np.zeros(trials)
+        self.cov_frob_mcs_far     = np.zeros(trials)
 
         self.ecdf_err_etkfs   = np.zeros((N_poi, trials))
         self.ecdf_err_letkfs  = np.zeros((N_poi, trials))
@@ -49,14 +62,27 @@ class RunningWriter:
         avg_mean_rmse_etkfs  = np.average(self.mean_rmse_etkfs)
         avg_mean_rmse_letkfs = np.average(self.mean_rmse_letkfs)
         avg_mean_rmse_iewpfs = np.average(self.mean_rmse_iewpfs)
+        avg_mean_rmse_mcs    = np.average(self.mean_rmse_mcs)
 
         avg_stddev_rmse_etkfs  = np.average(self.stddev_rmse_etkfs)
         avg_stddev_rmse_letkfs = np.average(self.stddev_rmse_letkfs)
         avg_stddev_rmse_iewpfs = np.average(self.stddev_rmse_iewpfs)
+        avg_stddev_rmse_mcs    = np.average(self.stddev_rmse_mcs)
 
         avg_cov_frob_etkfs   = np.average(self.cov_frob_etkfs)
         avg_cov_frob_letkfs  = np.average(self.cov_frob_letkfs)
         avg_cov_frob_iewpfs  = np.average(self.cov_frob_iewpfs)
+        avg_cov_frob_mcs  = np.average(self.cov_frob_mcs)
+
+        avg_cov_frob_etkfs_close   = np.average(self.cov_frob_etkfs_close)
+        avg_cov_frob_letkfs_close  = np.average(self.cov_frob_letkfs_close)
+        avg_cov_frob_iewpfs_close  = np.average(self.cov_frob_iewpfs_close)
+        avg_cov_frob_mcs_close  = np.average(self.cov_frob_mcs_close)
+
+        avg_cov_frob_etkfs_far   = np.average(self.cov_frob_etkfs_far)
+        avg_cov_frob_letkfs_far  = np.average(self.cov_frob_letkfs_far)
+        avg_cov_frob_iewpfs_far  = np.average(self.cov_frob_iewpfs_far)
+        avg_cov_frob_mcs_far  = np.average(self.cov_frob_mcs_far)
 
         avg_ecdf_err_etkfs  = []
         avg_ecdf_err_letkfs = []
@@ -74,18 +100,22 @@ class RunningWriter:
             avg_corr_p2p_err_letkfs.append(np.average(self.corr_p2p_err_letkf[p]))
             avg_corr_p2p_err_iewpfs.append(np.average(self.corr_p2p_err_iewpf[p]))
 
-        return avg_mean_rmse_etkfs, avg_mean_rmse_letkfs, avg_mean_rmse_iewpfs, \
-                avg_stddev_rmse_etkfs, avg_stddev_rmse_letkfs, avg_stddev_rmse_iewpfs, \
-                avg_cov_frob_etkfs, avg_cov_frob_letkfs, avg_cov_frob_iewpfs, \
+        return avg_mean_rmse_etkfs, avg_mean_rmse_letkfs, avg_mean_rmse_iewpfs, avg_mean_rmse_mcs, \
+                avg_stddev_rmse_etkfs, avg_stddev_rmse_letkfs, avg_stddev_rmse_iewpfs, avg_stddev_rmse_mcs, \
+                avg_cov_frob_etkfs, avg_cov_frob_letkfs, avg_cov_frob_iewpfs, avg_cov_frob_mcs, \
+                avg_cov_frob_etkfs_close, avg_cov_frob_letkfs_close, avg_cov_frob_iewpfs_close, avg_cov_frob_mcs_close, \
+                avg_cov_frob_etkfs_far, avg_cov_frob_letkfs_far, avg_cov_frob_iewpfs_far, avg_cov_frob_mcs_far, \
                 avg_ecdf_err_etkfs, avg_ecdf_err_letkfs, avg_ecdf_err_iewpfs, \
                 avg_corr_p2p_err_etkfs, avg_corr_p2p_err_letkfs, avg_corr_p2p_err_iewpfs
 
 
     def results2file(self, timestamp=None, as_table=None):
 
-        avg_mean_rmse_etkfs, avg_mean_rmse_letkfs, avg_mean_rmse_iewpfs, \
-        avg_stddev_rmse_etkfs, avg_stddev_rmse_letkfs, avg_stddev_rmse_iewpfs, \
-        avg_cov_frob_etkfs, avg_cov_frob_letkfs, avg_cov_frob_iewpfs, \
+        avg_mean_rmse_etkfs, avg_mean_rmse_letkfs, avg_mean_rmse_iewpfs, avg_mean_rmse_mcs, \
+        avg_stddev_rmse_etkfs, avg_stddev_rmse_letkfs, avg_stddev_rmse_iewpfs, avg_stddev_rmse_mcs, \
+        avg_cov_frob_etkfs, avg_cov_frob_letkfs, avg_cov_frob_iewpfs, avg_cov_frob_mcs, \
+        avg_cov_frob_etkfs_close, avg_cov_frob_letkfs_close, avg_cov_frob_iewpfs_close, avg_cov_frob_mcs_close, \
+        avg_cov_frob_etkfs_far, avg_cov_frob_letkfs_far, avg_cov_frob_iewpfs_far, avg_cov_frob_mcs_far, \
         avg_ecdf_err_etkfs, avg_ecdf_err_letkfs, avg_ecdf_err_iewpfs, \
         avg_corr_p2p_err_etkfs, avg_corr_p2p_err_letkfs, avg_corr_p2p_err_iewpfs = self.results()
         
@@ -111,6 +141,15 @@ class RunningWriter:
                 f.write("Cov Frobenius LETKF = " + str(avg_cov_frob_letkfs) + "\n")
                 f.write("Cov Frobenius IEWPF = " + str(avg_cov_frob_iewpfs) + "\n")
                 f.write("\n")
+                f.write("Cov Frobenius ETKF (close)  = " + str(avg_cov_frob_etkfs_close) + "\n")
+                f.write("Cov Frobenius LETKF (close) = " + str(avg_cov_frob_letkfs_close) + "\n")
+                f.write("Cov Frobenius IEWPF (close) = " + str(avg_cov_frob_iewpfs_close) + "\n")
+                f.write("\n")
+                f.write("Cov Frobenius ETKF (far)  = " + str(avg_cov_frob_etkfs_far) + "\n")
+                f.write("Cov Frobenius LETKF (far) = " + str(avg_cov_frob_letkfs_far) + "\n")
+                f.write("Cov Frobenius IEWPF (far) = " + str(avg_cov_frob_iewpfs_far) + "\n")
+                f.write("\n")
+
 
                 for p in range(self.N_poi):
                     f.write("ECDF Dist at PoI" + str(p) + " ETKF  = " + str(avg_ecdf_err_etkfs[p]) + "\n")
@@ -131,12 +170,23 @@ class RunningWriter:
                     self.mean_rmse_etkfs, \
                     self.mean_rmse_letkfs, \
                     self.mean_rmse_iewpfs, \
+                    self.mean_rmse_mcs, \
                     self.stddev_rmse_etkfs, \
                     self.stddev_rmse_letkfs, \
                     self.stddev_rmse_iewpfs, \
+                    self.stddev_rmse_mcs, \
                     self.cov_frob_etkfs, \
                     self.cov_frob_letkfs, \
-                    self.cov_frob_iewpfs))
+                    self.cov_frob_iewpfs, \
+                    self.cov_frob_mcs, \
+                    self.cov_frob_etkfs_close, \
+                    self.cov_frob_letkfs_close, \
+                    self.cov_frob_iewpfs_close, \
+                    self.cov_frob_mcs_close, \
+                    self.cov_frob_etkfs_far, \
+                    self.cov_frob_letkfs_far, \
+                    self.cov_frob_iewpfs_far, \
+                    self.cov_frob_mcs_far))
 
                 for p in range(self.N_poi):
                     table = np.column_stack((table, self.ecdf_err_etkfs[p], self.ecdf_err_letkfs[p], self.ecdf_err_iewpfs[p]))

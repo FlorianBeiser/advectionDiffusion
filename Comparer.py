@@ -11,11 +11,15 @@ from statsmodels.distributions.empirical_distribution import ECDF
 
 class Comparer:
 
-    def __init__(self, statistics_kf, statistics_etkf, statistics_letkf, statistics_iewpf):
+    def __init__(self, statistics_kf, statistics_etkf, statistics_letkf, statistics_iewpf, statistics_mc=None):
         self.statistics_kf    = statistics_kf
         self.statistics_etkf  = statistics_etkf
         self.statistics_letkf = statistics_letkf
         self.statistics_iewpf = statistics_iewpf
+        if statistics_mc is not None:
+            self.statistics_mc    = statistics_mc
+        else:
+            self.statistics_mc = None
 
         self.grid = self.statistics_kf.simulator.grid
 
@@ -93,13 +97,18 @@ class Comparer:
         mean_err_etkf = np.reshape(self.statistics_etkf.mean, (self.grid.ny, self.grid.nx)) - np.reshape(self.statistics_kf.mean, (self.grid.ny, self.grid.nx))
         mean_err_letkf = np.reshape(self.statistics_letkf.mean, (self.grid.ny, self.grid.nx)) - np.reshape(self.statistics_kf.mean, (self.grid.ny, self.grid.nx))
         mean_err_iewpf = np.reshape(self.statistics_iewpf.mean, (self.grid.ny, self.grid.nx)) - np.reshape(self.statistics_kf.mean, (self.grid.ny, self.grid.nx))
+        if self.statistics_mc is not None:
+            mean_err_mc = np.reshape(self.statistics_mc.mean, (self.grid.ny, self.grid.nx)) - np.reshape(self.statistics_kf.mean, (self.grid.ny, self.grid.nx))
 
         mean_rmse_kf = np.sqrt(np.sum(mean_err_kf**2))
         mean_rmse_etkf = np.sqrt(np.sum(mean_err_etkf**2))
         mean_rmse_letkf = np.sqrt(np.sum(mean_err_letkf**2))
         mean_rmse_iewpf = np.sqrt(np.sum(mean_err_iewpf**2))
-
-        return mean_rmse_kf, mean_rmse_etkf, mean_rmse_letkf, mean_rmse_iewpf
+        if self.statistics_mc is not None:
+            mean_rmse_mc = np.sqrt(np.sum(mean_err_mc**2))
+            return mean_rmse_kf, mean_rmse_etkf, mean_rmse_letkf, mean_rmse_iewpf, mean_rmse_mc
+        else: 
+            return mean_rmse_kf, mean_rmse_etkf, mean_rmse_letkf, mean_rmse_iewpf
 
 
     def stddev_plots(self):
@@ -171,13 +180,18 @@ class Comparer:
         stddev_err_etkf = np.reshape(self.statistics_etkf.stddev, (self.grid.ny, self.grid.nx)) - np.reshape(self.statistics_kf.stddev, (self.grid.ny, self.grid.nx))
         stddev_err_letkf = np.reshape(self.statistics_letkf.stddev, (self.grid.ny, self.grid.nx)) - np.reshape(self.statistics_kf.stddev, (self.grid.ny, self.grid.nx))
         stddev_err_iewpf = np.reshape(self.statistics_iewpf.stddev, (self.grid.ny, self.grid.nx)) - np.reshape(self.statistics_kf.stddev, (self.grid.ny, self.grid.nx))
+        if self.statistics_mc is not None:
+            stddev_err_mc = np.reshape(self.statistics_mc.stddev, (self.grid.ny, self.grid.nx)) - np.reshape(self.statistics_kf.stddev, (self.grid.ny, self.grid.nx))
 
         stddev_rmse_kf = np.sqrt(np.sum(stddev_err_kf**2))
         stddev_rmse_etkf = np.sqrt(np.sum(stddev_err_etkf**2))
         stddev_rmse_letkf = np.sqrt(np.sum(stddev_err_letkf**2))
         stddev_rmse_iewpf = np.sqrt(np.sum(stddev_err_iewpf**2))
-
-        return stddev_rmse_kf, stddev_rmse_etkf, stddev_rmse_letkf, stddev_rmse_iewpf
+        if self.statistics_mc is not None:
+            stddev_rmse_mc = np.sqrt(np.sum(stddev_err_mc**2))
+            return stddev_rmse_kf, stddev_rmse_etkf, stddev_rmse_letkf, stddev_rmse_iewpf, stddev_rmse_mc
+        else:
+            return stddev_rmse_kf, stddev_rmse_etkf, stddev_rmse_letkf, stddev_rmse_iewpf
 
 
     def cov_plots(self):
@@ -240,8 +254,35 @@ class Comparer:
         cov_frob_etkf = np.linalg.norm(self.statistics_kf.cov - self.statistics_etkf.cov)
         cov_frob_letkf = np.linalg.norm(self.statistics_kf.cov - self.statistics_letkf.cov)
         cov_frob_iewpf = np.linalg.norm(self.statistics_kf.cov - self.statistics_iewpf.cov)
+        if self.statistics_mc is not None:
+            cov_frob_mc = np.linalg.norm(self.statistics_kf.cov - self.statistics_mc.cov)
+            return cov_frob_kf, cov_frob_etkf, cov_frob_letkf, cov_frob_iewpf, cov_frob_mc
+        else:
+            return cov_frob_kf, cov_frob_etkf, cov_frob_letkf, cov_frob_iewpf
 
-        return cov_frob_kf, cov_frob_etkf, cov_frob_letkf, cov_frob_iewpf
+
+    def cov_frobenius_dist_close(self):
+        cov_frob_kf_close    = np.linalg.norm((self.statistics_kf.cov - self.statistics_kf.cov)[self.grid.dist_mat<1])
+        cov_frob_etkf_close  = np.linalg.norm((self.statistics_kf.cov - self.statistics_etkf.cov)[self.grid.dist_mat<1])
+        cov_frob_letkf_close = np.linalg.norm((self.statistics_kf.cov - self.statistics_letkf.cov)[self.grid.dist_mat<1])
+        cov_frob_iewpf_close = np.linalg.norm((self.statistics_kf.cov - self.statistics_iewpf.cov)[self.grid.dist_mat<1])
+        if self.statistics_mc is not None:
+            cov_frob_mc_close = np.linalg.norm((self.statistics_kf.cov - self.statistics_mc.cov)[self.grid.dist_mat<1])
+            return cov_frob_kf_close, cov_frob_etkf_close, cov_frob_letkf_close, cov_frob_iewpf_close, cov_frob_mc_close
+        else:
+            return cov_frob_kf_close, cov_frob_etkf_close, cov_frob_letkf_close, cov_frob_iewpf_close
+
+    
+    def cov_frobenius_dist_far(self):
+        cov_frob_kf_far    = np.linalg.norm((self.statistics_kf.cov - self.statistics_kf.cov)[self.grid.dist_mat>1])
+        cov_frob_etkf_far  = np.linalg.norm((self.statistics_kf.cov - self.statistics_etkf.cov)[self.grid.dist_mat>1])
+        cov_frob_letkf_far = np.linalg.norm((self.statistics_kf.cov - self.statistics_letkf.cov)[self.grid.dist_mat>1])
+        cov_frob_iewpf_far = np.linalg.norm((self.statistics_kf.cov - self.statistics_iewpf.cov)[self.grid.dist_mat>1])
+        if self.statistics_mc is not None:
+            cov_frob_mc_far = np.linalg.norm((self.statistics_kf.cov - self.statistics_mc.cov)[self.grid.dist_mat>1])
+            return cov_frob_kf_far, cov_frob_etkf_far, cov_frob_letkf_far, cov_frob_iewpf_far, cov_frob_mc_far
+        else:
+            return cov_frob_kf_far, cov_frob_etkf_far, cov_frob_letkf_far, cov_frob_iewpf_far
 
 
     def set_poi(self, pos):

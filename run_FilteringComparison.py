@@ -86,6 +86,10 @@ for trial_model in range(runningModelWriter.trials):
     trials_truth = args.trials_truth
     trials_init  = args.trials_init
 
+    if N_e >= 1000:
+        trials_truth = 3
+        trials_init = 2
+
     runningWriter = RunningWriter.RunningWriter(trials=trials_truth*trials_init, N_poi=len(pois), N_corr_poi=len(corr_ref_pois))
 
     for trail_truth in range(trials_truth):
@@ -149,15 +153,25 @@ for trial_model in range(runningModelWriter.trials):
                 statistics_iewpf.propagate(25, model_error=False)
                 iewpFilter.filter(statistics_iewpf.ensemble.ensemble, observation.obses[t])
 
+            # MC
+            print("MC")
+            statistics_mc = Statistics.Statistics(simulator, N_e, safe_history=True)
+            statistics_mc.set_prior(prior_args)
+
+            for t in range(observation.N_obs):
+                statistics_mc.propagate(25)
+
 
             # Comparison
             print("Comparing")
             trial = trail_truth*trials_init + trial_init
-            comparer = Comparer.Comparer(statistics_kf, statistics_etkf, statistics_letkf, statistics_iewpf)
+            comparer = Comparer.Comparer(statistics_kf, statistics_etkf, statistics_letkf, statistics_iewpf, statistics_mc)
 
-            mean_rmse_kf, runningWriter.mean_rmse_etkfs[trial], runningWriter.mean_rmse_letkfs[trial], runningWriter.mean_rmse_iewpfs[trial] = comparer.mean_rmse()
-            stddev_rmse_kf, runningWriter.stddev_rmse_etkfs[trial], runningWriter.stddev_rmse_letkfs[trial], runningWriter.stddev_rmse_iewpfs[trial] = comparer.stddev_rmse()
-            cov_frob_kf, runningWriter.cov_frob_etkfs[trial], runningWriter.cov_frob_letkfs[trial], runningWriter.cov_frob_iewpfs[trial] = comparer.cov_frobenius_dist()
+            mean_rmse_kf, runningWriter.mean_rmse_etkfs[trial], runningWriter.mean_rmse_letkfs[trial], runningWriter.mean_rmse_iewpfs[trial], runningWriter.mean_rmse_mcs[trial] = comparer.mean_rmse()
+            stddev_rmse_kf, runningWriter.stddev_rmse_etkfs[trial], runningWriter.stddev_rmse_letkfs[trial], runningWriter.stddev_rmse_iewpfs[trial], runningWriter.stddev_rmse_mcs[trial] = comparer.stddev_rmse()
+            cov_frob_kf, runningWriter.cov_frob_etkfs[trial], runningWriter.cov_frob_letkfs[trial], runningWriter.cov_frob_iewpfs[trial], runningWriter.cov_frob_mcs[trial] = comparer.cov_frobenius_dist()
+            cov_frob_kf_close, runningWriter.cov_frob_etkfs_close[trial], runningWriter.cov_frob_letkfs_close[trial], runningWriter.cov_frob_iewpfs_close[trial], runningWriter.cov_frob_mcs_close[trial] = comparer.cov_frobenius_dist_close()
+            cov_frob_kf_far, runningWriter.cov_frob_etkfs_far[trial], runningWriter.cov_frob_letkfs_far[trial], runningWriter.cov_frob_iewpfs_far[trial], runningWriter.cov_frob_mcs_far[trial] = comparer.cov_frobenius_dist_far()
 
             for p in range(len(pois)):
                 comparer.set_poi(pois[p])
@@ -176,12 +190,23 @@ for trial_model in range(runningModelWriter.trials):
     runningModelWriter.mean_rmse_etkfs[trial_model], \
     runningModelWriter.mean_rmse_letkfs[trial_model], \
     runningModelWriter.mean_rmse_iewpfs[trial_model], \
+    runningModelWriter.mean_rmse_mcs[trial_model], \
     runningModelWriter.stddev_rmse_etkfs[trial_model], \
     runningModelWriter.stddev_rmse_letkfs[trial_model], \
     runningModelWriter.stddev_rmse_iewpfs[trial_model], \
+    runningModelWriter.stddev_rmse_mcs[trial_model], \
     runningModelWriter.cov_frob_etkfs[trial_model], \
     runningModelWriter.cov_frob_letkfs[trial_model], \
     runningModelWriter.cov_frob_iewpfs[trial_model], \
+    runningModelWriter.cov_frob_mcs[trial_model], \
+    runningModelWriter.cov_frob_etkfs_close[trial_model], \
+    runningModelWriter.cov_frob_letkfs_close[trial_model], \
+    runningModelWriter.cov_frob_iewpfs_close[trial_model], \
+    runningModelWriter.cov_frob_mcs_close[trial_model], \
+    runningModelWriter.cov_frob_etkfs_far[trial_model], \
+    runningModelWriter.cov_frob_letkfs_far[trial_model], \
+    runningModelWriter.cov_frob_iewpfs_far[trial_model], \
+    runningModelWriter.cov_frob_mcs_far[trial_model], \
     runningModelWriter.ecdf_err_etkfs[:,trial_model], \
     runningModelWriter.ecdf_err_letkfs[:,trial_model],\
     runningModelWriter.ecdf_err_iewpfs[:,trial_model],\
