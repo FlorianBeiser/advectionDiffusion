@@ -70,7 +70,7 @@ for trial_model in range(runningModelWriter.trials):
     if mode == "ensemble_size":
         N_e = N_es[trial_model]
     else:
-        N_e = 100
+        N_e = 50
 
     if mode == "observation_size":
         observation.set_regular_positions(N_ys[trial_model])
@@ -87,8 +87,8 @@ for trial_model in range(runningModelWriter.trials):
     trials_init  = args.trials_init
 
     if N_e >= 1000:
-        trials_truth = 3
-        trials_init = 2
+        trials_truth = 5
+        trials_init = 3 
 
     runningWriter = RunningWriter.RunningWriter(trials=trials_truth*trials_init, N_poi=len(pois), N_corr_poi=len(corr_ref_pois))
 
