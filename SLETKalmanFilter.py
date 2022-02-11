@@ -18,7 +18,7 @@ class SLETKalman:
             np.array([self.statistics.simulator.grid.dx,self.statistics.simulator.grid.dy])
 
         # Grouping for serial processing
-        self.initializeGroups(scale_r)
+        self.initializeGroups(scale_r+1)
 
         # Local kernels around observations sites
         self.initializeLocalisation(scale_r)
