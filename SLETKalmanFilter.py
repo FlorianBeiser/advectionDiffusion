@@ -18,7 +18,7 @@ class SLETKalman:
             np.array([self.statistics.simulator.grid.dx,self.statistics.simulator.grid.dy])
 
         # Grouping for serial processing
-        self.initializeGroups(scale_r+1)
+        self.initializeGroups(scale_r)
 
         # Local kernels around observations sites
         self.initializeLocalisation(scale_r)
@@ -42,7 +42,7 @@ class SLETKalman:
         # Groups of "un-correlated" observation
         self.groups = list([list(np.arange(self.N_y, dtype=int))])
         # Observations are assumed to be uncorrelated, if distance bigger than threshold
-        threshold = 1.5 * scale_r * self.statistics.simulator.grid.dx
+        threshold = 2.0 * 1.5 * scale_r * self.statistics.simulator.grid.dx
 
         g = 0 
         while self.obs_dist_mat[np.ix_(self.groups[g],self.groups[g])].min() < threshold:
@@ -166,7 +166,10 @@ class SLETKalman:
         for y in range(local_ny):
             for x in range(local_nx):
                 loc = np.array([(x+0.5)*dx, (y+0.5)*dy])
-                weights[y,x] = min(1, SLETKalman.distGC(obs_loc, loc, scale_r*dx, nx*dx, ny*dy))
+                if np.linalg.norm(obs_loc - loc) > 1.5*scale_r*dx:
+                    weights[y,x] = 0
+                else:
+                    weights[y,x] = min(1, SLETKalman.distGC(obs_loc, loc, scale_r*dx, nx*dx, ny*dy))
                             
         return weights
 

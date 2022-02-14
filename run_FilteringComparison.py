@@ -135,7 +135,7 @@ for trial_model in range(runningModelWriter.trials):
             statistics_letkf = Statistics.Statistics(simulator, N_e, safe_history=True)
             statistics_letkf.set_prior(prior_args)
 
-            scale_r = 8
+            scale_r = 6
             sletkFilter = SLETKalmanFilter.SLETKalman(statistics_letkf, observation, scale_r)
 
             for t in range(observation.N_obs):
