@@ -50,11 +50,13 @@ args = parser.parse_args(sys.argv[1:])
 mode = args.mode
 
 if mode == "ensemble_size": 
-    N_es = [25, 50, 100, 250, 1000, 5000]
+    N_es = [25, 50]#, 100, 250, 1000, 5000]
     runningModelWriter = RunningWriter.RunningWriter(trials=len(N_es), N_poi=len(pois), N_corr_poi=len(corr_ref_pois))
+    runningModelWriterSTD = RunningWriter.RunningWriter(trials=len(N_es), N_poi=len(pois), N_corr_poi=len(corr_ref_pois))
 if mode == "observation_size":
     N_ys = [3, 4, 5, 10, 15]
     runningModelWriter = RunningWriter.RunningWriter(trials=len(N_ys), N_poi=len(pois), N_corr_poi=len(corr_ref_pois))
+    runningModelWriterSTD = RunningWriter.RunningWriter(trials=len(N_ys), N_poi=len(pois), N_corr_poi=len(corr_ref_pois))
 if mode == "advection":
     vs = [[0.5,0.5], [1.0, 0.5], [1.5, 0.5], [2.0, 0.5]]
     runningModelWriter = RunningWriter.RunningWriter(trials=len(vs), N_poi=len(pois), N_corr_poi=len(corr_ref_pois))
@@ -177,7 +179,7 @@ for trial_model in range(runningModelWriter.trials):
                 comparer.set_poi(pois[p])
                 
             for p in range(len(pois)):
-                runningWriter.ecdf_err_etkfs[p][trial], runningWriter.ecdf_err_letkfs[p][trial], runningWriter.ecdf_err_iewpfs[p][trial] = comparer.poi_ecdf_err(p)
+                runningWriter.ecdf_err_etkfs[p][trial], runningWriter.ecdf_err_letkfs[p][trial], runningWriter.ecdf_err_iewpfs[p][trial], runningWriter.ecdf_err_mcs[p][trial] = comparer.poi_ecdf_err(p)
 
             comparer.set_corr_ref_pois(corr_ref_pois)
 
@@ -187,39 +189,15 @@ for trial_model in range(runningModelWriter.trials):
             print("done\n")
 
 
-    runningModelWriter.mean_rmse_etkfs[trial_model], \
-    runningModelWriter.mean_rmse_letkfs[trial_model], \
-    runningModelWriter.mean_rmse_iewpfs[trial_model], \
-    runningModelWriter.mean_rmse_mcs[trial_model], \
-    runningModelWriter.stddev_rmse_etkfs[trial_model], \
-    runningModelWriter.stddev_rmse_letkfs[trial_model], \
-    runningModelWriter.stddev_rmse_iewpfs[trial_model], \
-    runningModelWriter.stddev_rmse_mcs[trial_model], \
-    runningModelWriter.cov_frob_etkfs[trial_model], \
-    runningModelWriter.cov_frob_letkfs[trial_model], \
-    runningModelWriter.cov_frob_iewpfs[trial_model], \
-    runningModelWriter.cov_frob_mcs[trial_model], \
-    runningModelWriter.cov_frob_etkfs_close[trial_model], \
-    runningModelWriter.cov_frob_letkfs_close[trial_model], \
-    runningModelWriter.cov_frob_iewpfs_close[trial_model], \
-    runningModelWriter.cov_frob_mcs_close[trial_model], \
-    runningModelWriter.cov_frob_etkfs_far[trial_model], \
-    runningModelWriter.cov_frob_letkfs_far[trial_model], \
-    runningModelWriter.cov_frob_iewpfs_far[trial_model], \
-    runningModelWriter.cov_frob_mcs_far[trial_model], \
-    runningModelWriter.ecdf_err_etkfs[:,trial_model], \
-    runningModelWriter.ecdf_err_letkfs[:,trial_model],\
-    runningModelWriter.ecdf_err_iewpfs[:,trial_model],\
-    runningModelWriter.corr_p2p_err_etkf[:,trial_model],\
-    runningModelWriter.corr_p2p_err_letkf[:,trial_model],\
-    runningModelWriter.corr_p2p_err_iewpf[:,trial_model]\
-    = runningWriter.results()
+    runningModelWriter.results2write(runningWriter.results(), trial_model)
+    runningModelWriterSTD.results2write(runningWriter.results("std"), trial_model)
 
 
 if mode == "ensemble_size": 
-    runningModelWriter.results2file(timestamp, N_es)
+    runningModelWriter.results2file(timestamp, N_es, "N_e", "avg")
+    runningModelWriterSTD.results2file(timestamp, N_es, "N_e", "std")
 if mode == "observation_size":
-    runningModelWriter.results2file(timestamp, N_ys)
+    runningModelWriter.results2file(timestamp, N_ys, "N_y")
 if mode == "advection":
     runningModelWriter.results2file(timestamp, [v[0] for v in vs])
 if mode == "model_noise":

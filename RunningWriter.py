@@ -37,10 +37,12 @@ class RunningWriter:
         self.ecdf_err_etkfs   = np.zeros((N_poi, trials))
         self.ecdf_err_letkfs  = np.zeros((N_poi, trials))
         self.ecdf_err_iewpfs  = np.zeros((N_poi, trials))
+        self.ecdf_err_mcs     = np.zeros((N_poi, trials))
 
         self.corr_p2p_err_etkf  = np.zeros((N_corr_poi, trials))
         self.corr_p2p_err_letkf = np.zeros((N_corr_poi, trials))
         self.corr_p2p_err_iewpf = np.zeros((N_corr_poi, trials))
+        self.corr_p2p_err_mc    = np.zeros((N_corr_poi, trials))
 
 
     def header2file(self, N_e, trails_truth, trails_init, timestamp=None):
@@ -58,140 +60,120 @@ class RunningWriter:
             f.close()
 
 
-    def results(self):
-        avg_mean_rmse_etkfs  = np.average(self.mean_rmse_etkfs)
-        avg_mean_rmse_letkfs = np.average(self.mean_rmse_letkfs)
-        avg_mean_rmse_iewpfs = np.average(self.mean_rmse_iewpfs)
-        avg_mean_rmse_mcs    = np.average(self.mean_rmse_mcs)
+    def results(self, mode="avg"):
 
-        avg_stddev_rmse_etkfs  = np.average(self.stddev_rmse_etkfs)
-        avg_stddev_rmse_letkfs = np.average(self.stddev_rmse_letkfs)
-        avg_stddev_rmse_iewpfs = np.average(self.stddev_rmse_iewpfs)
-        avg_stddev_rmse_mcs    = np.average(self.stddev_rmse_mcs)
+        vars_names = list(filter(lambda n: n[0]!="N" and  n[0]!="_" and n!="trials" and n!="results" and "2" not in n , dir(self)))
 
-        avg_cov_frob_etkfs   = np.average(self.cov_frob_etkfs)
-        avg_cov_frob_letkfs  = np.average(self.cov_frob_letkfs)
-        avg_cov_frob_iewpfs  = np.average(self.cov_frob_iewpfs)
-        avg_cov_frob_mcs  = np.average(self.cov_frob_mcs)
+        stats = {}
 
-        avg_cov_frob_etkfs_close   = np.average(self.cov_frob_etkfs_close)
-        avg_cov_frob_letkfs_close  = np.average(self.cov_frob_letkfs_close)
-        avg_cov_frob_iewpfs_close  = np.average(self.cov_frob_iewpfs_close)
-        avg_cov_frob_mcs_close  = np.average(self.cov_frob_mcs_close)
+        for var_name in vars_names:
+            var = getattr(self, var_name)
+            if len(var.shape) > 1: 
+                if mode == "avg":
+                    avgs = np.zeros(var.shape[0])
+                    for i in range(var.shape[0]):
+                        avgs[i] = np.average(var[i])
+                    stats["avg_"+var_name] = avgs
+                else:
+                    stds = np.zeros(var.shape[0])
+                    for i in range(var.shape[0]):
+                        stds[i] = np.std(var[i])
+                    stats["avg_"+var_name] = stds
 
-        avg_cov_frob_etkfs_far   = np.average(self.cov_frob_etkfs_far)
-        avg_cov_frob_letkfs_far  = np.average(self.cov_frob_letkfs_far)
-        avg_cov_frob_iewpfs_far  = np.average(self.cov_frob_iewpfs_far)
-        avg_cov_frob_mcs_far  = np.average(self.cov_frob_mcs_far)
+            else:
+                if mode == "avg":
+                    stats["avg_"+var_name] = np.average(var)
+                if mode == "std":
+                    stats["std_"+var_name] = np.std(var)
 
-        avg_ecdf_err_etkfs  = []
-        avg_ecdf_err_letkfs = []
-        avg_ecdf_err_iewpfs = []
-        for p in range(self.N_poi):
-            avg_ecdf_err_etkfs.append(np.average(self.ecdf_err_etkfs[p]))
-            avg_ecdf_err_letkfs.append(np.average(self.ecdf_err_letkfs[p]))
-            avg_ecdf_err_iewpfs.append(np.average(self.ecdf_err_iewpfs[p]))
-            
-        avg_corr_p2p_err_etkfs  = []
-        avg_corr_p2p_err_letkfs = []
-        avg_corr_p2p_err_iewpfs  = []
-        for p in range(self.N_corr_poi):
-            avg_corr_p2p_err_etkfs.append(np.average(self.corr_p2p_err_etkf[p]))
-            avg_corr_p2p_err_letkfs.append(np.average(self.corr_p2p_err_letkf[p]))
-            avg_corr_p2p_err_iewpfs.append(np.average(self.corr_p2p_err_iewpf[p]))
-
-        return avg_mean_rmse_etkfs, avg_mean_rmse_letkfs, avg_mean_rmse_iewpfs, avg_mean_rmse_mcs, \
-                avg_stddev_rmse_etkfs, avg_stddev_rmse_letkfs, avg_stddev_rmse_iewpfs, avg_stddev_rmse_mcs, \
-                avg_cov_frob_etkfs, avg_cov_frob_letkfs, avg_cov_frob_iewpfs, avg_cov_frob_mcs, \
-                avg_cov_frob_etkfs_close, avg_cov_frob_letkfs_close, avg_cov_frob_iewpfs_close, avg_cov_frob_mcs_close, \
-                avg_cov_frob_etkfs_far, avg_cov_frob_letkfs_far, avg_cov_frob_iewpfs_far, avg_cov_frob_mcs_far, \
-                avg_ecdf_err_etkfs, avg_ecdf_err_letkfs, avg_ecdf_err_iewpfs, \
-                avg_corr_p2p_err_etkfs, avg_corr_p2p_err_letkfs, avg_corr_p2p_err_iewpfs
+        return  stats
 
 
-    def results2file(self, timestamp=None, as_table=None):
+    def results2file(self, timestamp=None, table=None, title=None, mode="avg"):
 
-        avg_mean_rmse_etkfs, avg_mean_rmse_letkfs, avg_mean_rmse_iewpfs, avg_mean_rmse_mcs, \
-        avg_stddev_rmse_etkfs, avg_stddev_rmse_letkfs, avg_stddev_rmse_iewpfs, avg_stddev_rmse_mcs, \
-        avg_cov_frob_etkfs, avg_cov_frob_letkfs, avg_cov_frob_iewpfs, avg_cov_frob_mcs, \
-        avg_cov_frob_etkfs_close, avg_cov_frob_letkfs_close, avg_cov_frob_iewpfs_close, avg_cov_frob_mcs_close, \
-        avg_cov_frob_etkfs_far, avg_cov_frob_letkfs_far, avg_cov_frob_iewpfs_far, avg_cov_frob_mcs_far, \
-        avg_ecdf_err_etkfs, avg_ecdf_err_letkfs, avg_ecdf_err_iewpfs, \
-        avg_corr_p2p_err_etkfs, avg_corr_p2p_err_letkfs, avg_corr_p2p_err_iewpfs = self.results()
         
         if timestamp is not None:
 
-            if as_table is None:
+            if table is None:
                 file = "experiment_files/experiment_" + timestamp + "/results_" + self.result_timestamp
+
+                stats = self.results()
 
                 f = open(file, "a")
                 f.write("--------------------------------------------\n")
                 f.write("Results from the Comparison of ETKF and LETKF\n")
                 f.write("versus the analytical posterior from the KF\n")
                 f.write("--------------------------------------------\n")
-                f.write("Mean RMSE EKTF  = " + str(avg_mean_rmse_etkfs) + "\n")
-                f.write("Mean RMSE LEKTF = " + str(avg_mean_rmse_letkfs) + "\n")
-                f.write("Mean RMSE IEWPF = " + str(avg_mean_rmse_iewpfs) + "\n")
+                f.write("Mean RMSE EKTF  = " + str(stats("avg_mean_rmse_etkfs")) + "\n")
+                f.write("Mean RMSE LEKTF = " + str(stats("avg_mean_rmse_letkfs")) + "\n")
+                f.write("Mean RMSE IEWPF = " + str(stats("avg_mean_rmse_iewpfs")) + "\n")
+                f.write("Mean RMSE MC    = " + str(stats("avg_mean_rmse_mcs")) + "\n")
                 f.write("\n")
-                f.write("Stddev RMSE EKTF  = " + str(avg_stddev_rmse_etkfs) + "\n")
-                f.write("Stddev RMSE LEKTF = " + str(avg_stddev_rmse_letkfs) + "\n")
-                f.write("Stddev RMSE IEWPF = " + str(avg_stddev_rmse_iewpfs) + "\n")
+                f.write("Stddev RMSE EKTF  = " + str(stats("avg_stddev_rmse_etkfs")) + "\n")
+                f.write("Stddev RMSE LEKTF = " + str(stats("avg_stddev_rmse_letkfs")) + "\n")
+                f.write("Stddev RMSE IEWPF = " + str(stats("avg_stddev_rmse_iewpfs")) + "\n")
+                f.write("Stddev RMSE MC    = " + str(stats("avg_stddev_rmse_mcs")) + "\n")
                 f.write("\n")
-                f.write("Cov Frobenius ETKF  = " + str(avg_cov_frob_etkfs) + "\n")
-                f.write("Cov Frobenius LETKF = " + str(avg_cov_frob_letkfs) + "\n")
-                f.write("Cov Frobenius IEWPF = " + str(avg_cov_frob_iewpfs) + "\n")
+                f.write("Cov Frobenius ETKF  = " + str(stats("avg_cov_frob_etkfs")) + "\n")
+                f.write("Cov Frobenius LETKF = " + str(stats("avg_cov_frob_letkfs")) + "\n")
+                f.write("Cov Frobenius IEWPF = " + str(stats("avg_cov_frob_iewpfs")) + "\n")
+                f.write("Cov Frobenius MC    = " + str(stats("avg_cov_frob_mcs")) + "\n")
                 f.write("\n")
-                f.write("Cov Frobenius ETKF (close)  = " + str(avg_cov_frob_etkfs_close) + "\n")
-                f.write("Cov Frobenius LETKF (close) = " + str(avg_cov_frob_letkfs_close) + "\n")
-                f.write("Cov Frobenius IEWPF (close) = " + str(avg_cov_frob_iewpfs_close) + "\n")
+                f.write("Cov Frobenius ETKF (close)  = " + str(stats("avg_cov_frob_etkfs_close")) + "\n")
+                f.write("Cov Frobenius LETKF (close) = " + str(stats("avg_cov_frob_letkfs_close")) + "\n")
+                f.write("Cov Frobenius IEWPF (close) = " + str(stats("avg_cov_frob_iewpfs_close")) + "\n")
+                f.write("Cov Frobenius MC    (close) = " + str(stats("avg_cov_frob_mcs_close")) + "\n")
                 f.write("\n")
-                f.write("Cov Frobenius ETKF (far)  = " + str(avg_cov_frob_etkfs_far) + "\n")
-                f.write("Cov Frobenius LETKF (far) = " + str(avg_cov_frob_letkfs_far) + "\n")
-                f.write("Cov Frobenius IEWPF (far) = " + str(avg_cov_frob_iewpfs_far) + "\n")
+                f.write("Cov Frobenius ETKF (far)  = " + str(stats("avg_cov_frob_etkfs_far")) + "\n")
+                f.write("Cov Frobenius LETKF (far) = " + str(stats("avg_cov_frob_letkfs_far")) + "\n")
+                f.write("Cov Frobenius IEWPF (far) = " + str(stats("avg_cov_frob_iewpfs_far")) + "\n")
+                f.write("Cov Frobenius MC    (far) = " + str(stats("avg_cov_frob_mcs_far")) + "\n")
                 f.write("\n")
 
 
                 for p in range(self.N_poi):
-                    f.write("ECDF Dist at PoI" + str(p) + " ETKF  = " + str(avg_ecdf_err_etkfs[p]) + "\n")
-                    f.write("ECDF Dist at PoI" + str(p) + " LETKF = " + str(avg_ecdf_err_letkfs[p]) + "\n")
-                    f.write("ECDF Dist at PoI" + str(p) + " IEWPF = " + str(avg_ecdf_err_iewpfs[p]) + "\n")
+                    f.write("ECDF Dist at PoI" + str(p) + " ETKF  = " + str(stats("avg_ecdf_err_etkfs")[p]) + "\n")
+                    f.write("ECDF Dist at PoI" + str(p) + " LETKF = " + str(stats("avg_ecdf_err_letkfs")[p]) + "\n")
+                    f.write("ECDF Dist at PoI" + str(p) + " IEWPF = " + str(stats("avg_ecdf_err_iewpfs")[p]) + "\n")
 
                 for p in range(self.N_poi):     
-                    f.write("Correlation error from point"+str(p)+" ETKF  = " + str(avg_corr_p2p_err_etkfs[p]) + "\n")
-                    f.write("Correlation error from point"+str(p)+" LETKF = " + str(avg_corr_p2p_err_letkfs[p]) + "\n")
-                    f.write("Correlation error from point"+str(p)+" IEWPF = " + str(avg_corr_p2p_err_iewpfs[p]) + "\n")
+                    f.write("Correlation error from point"+str(p)+" ETKF  = " + str(stats("avg_corr_p2p_err_etkfs")[p]) + "\n")
+                    f.write("Correlation error from point"+str(p)+" LETKF = " + str(stats("avg_corr_p2p_err_letkfs")[p]) + "\n")
+                    f.write("Correlation error from point"+str(p)+" IEWPF = " + str(stats("avg_corr_p2p_err_iewpfs")[p]) + "\n")
                     f.write("\n")
             
             else:
                 result_timestamp = datetime.datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
-                file = "experiment_files/experiment_" + timestamp + "/results_" + result_timestamp
+                file = "experiment_files/experiment_" + timestamp + "/results_" + result_timestamp + "_" + mode
 
-                table = np.column_stack((as_table, \
-                    self.mean_rmse_etkfs, \
-                    self.mean_rmse_letkfs, \
-                    self.mean_rmse_iewpfs, \
-                    self.mean_rmse_mcs, \
-                    self.stddev_rmse_etkfs, \
-                    self.stddev_rmse_letkfs, \
-                    self.stddev_rmse_iewpfs, \
-                    self.stddev_rmse_mcs, \
-                    self.cov_frob_etkfs, \
-                    self.cov_frob_letkfs, \
-                    self.cov_frob_iewpfs, \
-                    self.cov_frob_mcs, \
-                    self.cov_frob_etkfs_close, \
-                    self.cov_frob_letkfs_close, \
-                    self.cov_frob_iewpfs_close, \
-                    self.cov_frob_mcs_close, \
-                    self.cov_frob_etkfs_far, \
-                    self.cov_frob_letkfs_far, \
-                    self.cov_frob_iewpfs_far, \
-                    self.cov_frob_mcs_far))
+                headers = title
 
-                for p in range(self.N_poi):
-                    table = np.column_stack((table, self.ecdf_err_etkfs[p], self.ecdf_err_letkfs[p], self.ecdf_err_iewpfs[p]))
+                vars_names = sorted(list(filter(lambda n: n[0]!="N" and  n[0]!="_" and n!="trials" and n!="results" and "2" not in n, dir(self))))
 
-                for p in range(self.N_corr_poi):
-                    table = np.column_stack((table, self.corr_p2p_err_etkf[p], self.corr_p2p_err_letkf[p], self.corr_p2p_err_iewpf[p]))
+                for var_name in vars_names:
+                    var = getattr(self, var_name)
+                    if len(var.shape) > 1: 
+                        for i in range(var.shape[0]):
+                            headers = headers +" "+ var_name+str(i)
+                            table = np.column_stack((table, var[i]))
+                    else:
+                        headers = headers +" "+mode+"_"+ var_name
+                        table = np.column_stack((table, var))
 
-                np.savetxt(file, table)
+                np.savetxt(file, table, header=headers)
+
+
+    def results2write(self, stats, trial):
+
+        for key in stats.keys():
+            value = stats[key]
+            if np.isscalar(value):
+                getattr(self,key[4:])[trial] = value
+            else: 
+                getattr(self,key[4:])[:,trial] = value
+            
+            # print(key)
+            # print(value)
+            # print(getattr(self,key[4:]))
+
+            

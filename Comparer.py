@@ -407,7 +407,13 @@ class Comparer:
         ecdf_err_letkf = scipy.integrate.quad(diff_letkf, xmin, xmax, limit=100)[0]
         ecdf_err_iewpf = scipy.integrate.quad(diff_iewpf, xmin, xmax, limit=100)[0]
 
-        return ecdf_err_etkf, ecdf_err_letkf, ecdf_err_iewpf
+        if self.statistics_mc is not None:
+            ecdf_mc = ECDF(self.statistics_mc.ensemble.ensemble[self.poi[i],:])
+            diff_mc = lambda x: abs(cdf(x)-ecdf_mc(x))
+            ecdf_err_mc = scipy.integrate.quad(diff_mc, xmin, xmax, limit=100)[0]
+            return ecdf_err_etkf, ecdf_err_letkf, ecdf_err_iewpf, ecdf_err_mc
+        else: 
+            return ecdf_err_etkf, ecdf_err_letkf, ecdf_err_iewpf
     
 
     def set_corr_ref_pois(self, corr_ref_pois):
