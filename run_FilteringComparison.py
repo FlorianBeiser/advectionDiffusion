@@ -50,7 +50,7 @@ args = parser.parse_args(sys.argv[1:])
 mode = args.mode
 
 if mode == "ensemble_size": 
-    N_es = [25, 50]#, 100, 250, 1000, 5000]
+    N_es = [25, 50, 100, 250, 1000, 5000]
     runningModelWriter = RunningWriter.RunningWriter(trials=len(N_es), N_poi=len(pois), N_corr_poi=len(corr_ref_pois))
     runningModelWriterSTD = RunningWriter.RunningWriter(trials=len(N_es), N_poi=len(pois), N_corr_poi=len(corr_ref_pois))
 if mode == "observation_size":
