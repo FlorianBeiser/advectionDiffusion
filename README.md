@@ -1,11 +1,14 @@
 # advectionDiffusion
 Propagation of a Gauss-linear model and data assimilation by means of the analytical Kalman filter (KF) as well as by means of the ensemble-based Ensemble transform Kalman filter (ETKF) without and with localisation 
 
+
 ## Acknowledgement
 The example and the original code is taken from the work of Gunhild Berget (NTNU). 
 
+
 ## Content
 The stochastic advection diffusion equations serves as an example to compare the posteriors of the ETKF and the LETKF, respectively, with the analytical posteriors of the KF.
+
 
 ## Requirements
 We recommend the use of a conda environment with Python 3.8 (tested) and the following packages
@@ -14,6 +17,7 @@ We recommend the use of a conda environment with Python 3.8 (tested) and the fol
 - matplotlib
 - scipy
 - statsmodels
+
 
 ## Introduction to code structure
 
@@ -24,4 +28,10 @@ The truth is handled as an ensemble of size 1, the corresponding experimental se
 Given a set-up (by its timestamp), data assimilation can be seen in action in `KFiltering.ipynb`, `ETKFiltering.ipynb`, and `SLETKFiltering.ipynb` for the respective methods. 
 
 ### Comparison
-The `FilteringComparison.ipynb` opposes the results of the different data assimilation methods by different criteria.
+The `FilteringComparison.ipynb` opposes the results of the different data assimilation methods for a single experiment by different criteria.
+The same critieria are evaulated for multiple repetitions in `run_FilteringComparison.py` with changing parameters if specified.
+
+
+## Reproducing resutls 
+
+The plots shown in the paper "Comparison of Ensemble-Based Data Assimilation Methods for Oceanographic Applications with Sparse Observations" are generated from this repository. 

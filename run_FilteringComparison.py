@@ -1,4 +1,7 @@
-
+"""
+Example:
+python run_FilteringComparison.py -m ensemble_size
+"""
 import Simulator
 import Observation
 import Statistics
