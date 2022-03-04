@@ -39,10 +39,10 @@ class RunningWriter:
         self.ecdf_err_iewpfs  = np.zeros((N_poi, trials))
         self.ecdf_err_mcs     = np.zeros((N_poi, trials))
 
-        self.corr_p2p_err_etkf  = np.zeros((N_corr_poi, trials))
-        self.corr_p2p_err_letkf = np.zeros((N_corr_poi, trials))
-        self.corr_p2p_err_iewpf = np.zeros((N_corr_poi, trials))
-        self.corr_p2p_err_mc    = np.zeros((N_corr_poi, trials))
+        self.corr_err_etkf  = np.zeros((N_corr_poi, trials))
+        self.corr_err_letkf = np.zeros((N_corr_poi, trials))
+        self.corr_err_iewpf = np.zeros((N_corr_poi, trials))
+        self.corr_err_mc    = np.zeros((N_corr_poi, trials))
 
 
     def header2file(self, N_e, trails_truth, trails_init, timestamp=None):
