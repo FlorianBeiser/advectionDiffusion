@@ -18,7 +18,7 @@ import RunningWriter
 
 print("Initialising...")
 
-timestamp = "2021_08_11-14_10_29"
+timestamp = "2022_03_02-12_44_46"
 grid, simulator = Simulator.from_file(timestamp)
 
 observation = Observation.from_file(grid, timestamp)
@@ -187,7 +187,7 @@ for trial_model in range(runningModelWriter.trials):
             comparer.set_corr_ref_pois(corr_ref_pois)
 
             for p in range(len(corr_ref_pois)):
-                runningWriter.corr_p2p_err_etkf[p][trial], runningWriter.corr_p2p_err_letkf[p][trial], runningWriter.corr_p2p_err_iewpf[p][trial] = comparer.corr_p2p_err(p)
+                runningWriter.corr_err_etkf[p][trial], runningWriter.corr_err_letkf[p][trial], runningWriter.corr_err_iewpf[p][trial] = comparer.corr_p2p_err(p)
 
             print("done\n")
 
