@@ -5,7 +5,7 @@ Kalman filter update for advection diffusion example.
 import numpy as np
 
 class SLETKalman:
-    def __init__(self, statistics, observation, scale_r):
+    def __init__(self, statistics, observation, scale_r, scale_w=1.0):
         self.statistics = statistics
         
         # Observation and obs error cov matrices
@@ -21,7 +21,7 @@ class SLETKalman:
         self.initializeGroups(scale_r)
 
         # Local kernels around observations sites
-        self.initializeLocalisation(scale_r)
+        self.initializeLocalisation(scale_r, scale_w)
 
 
     def initializeGroups(self, scale_r):
@@ -57,14 +57,14 @@ class SLETKalman:
             g = g + 1 
 
 
-    def initializeLocalisation(self, scale_r):
+    def initializeLocalisation(self, scale_r, scale_w):
 
         dx = self.statistics.simulator.grid.dx
         dy = self.statistics.simulator.grid.dy
         nx = self.statistics.simulator.grid.nx
         ny = self.statistics.simulator.grid.ny
 
-        self.W_loc = SLETKalman.getLocalWeightShape(scale_r, dx, dy, nx, ny)
+        self.W_loc = SLETKalman.getLocalWeightShape(scale_r, dx, dy, nx, ny, scale_w)
 
         self.all_Ls = []
         self.all_xrolls = []
@@ -88,7 +88,7 @@ class SLETKalman:
             self.all_xrolls.append(xrolls)
             self.all_yrolls.append(yrolls)
 
-            W_combined = SLETKalman.getCombinedWeights(self.observation_positions[self.groups[g]], scale_r, dx, dy, nx, ny, self.W_loc)
+            W_combined = SLETKalman.getCombinedWeights(self.observation_positions[self.groups[g]], scale_r, dx, dy, nx, ny, self.W_loc, scale_w)
 
             W_scale    = np.maximum(W_combined,1)
 
@@ -152,7 +152,7 @@ class SLETKalman:
 
 
     @staticmethod
-    def getLocalWeightShape(scale_r, dx, dy, nx, ny):
+    def getLocalWeightShape(scale_r, dx, dy, nx, ny, scale_w=1.0):
         """
         Gives a local stencil with weights based on the distGC
         """
@@ -171,7 +171,7 @@ class SLETKalman:
                 else:
                     weights[y,x] = min(1, SLETKalman.distGC(obs_loc, loc, scale_r*dx, nx*dx, ny*dy))
                             
-        return weights
+        return scale_w * weights
 
 
     @staticmethod
@@ -217,7 +217,7 @@ class SLETKalman:
     
     
     @staticmethod
-    def getCombinedWeights(observation_positions, scale_r, dx, dy, nx, ny, W_loc):
+    def getCombinedWeights(observation_positions, scale_r, dx, dy, nx, ny, W_loc, scale_w=1.0):
     
         W_scale = np.zeros((ny, nx))
         
@@ -228,7 +228,7 @@ class SLETKalman:
             return None
 
         # Get the shape of the local weights (drifter independent)
-        W_loc = SLETKalman.getLocalWeightShape(scale_r, dx, dy, nx, ny)
+        W_loc = SLETKalman.getLocalWeightShape(scale_r, dx, dy, nx, ny, scale_w)
 
         for d in range(num_drifters):
             # Get local mapping for drifter 
