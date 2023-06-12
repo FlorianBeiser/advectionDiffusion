@@ -1,0 +1,28 @@
+--------------------------------------------
+Setup for the advection diffusion experiment
+--------------------------------------------
+The grid:
+grid.nx = 50
+grid.ny = 30
+grid.dx = 0.1
+grid.dy = 0.1
+--------------------------------------------
+The parameters for the advection diffusion equation:
+simulator.D = 0.125
+simulator.v = [1.5, 0.5]
+simulator.zeta = -0.0001
+simulator.dt = 0.01
+simulator.noise_stddev = 0.1
+simulator.noise_matern_phi = 7.0
+--------------------------------------------
+Properties of the observations:
+observation.noise_stddev = 0.1
+--------------------------------------------
+Prior for the advection diffusion experiment
+(Parameters for mean and cov of Gaussian distribution):
+mean_upshift = 10.0
+bell_center = [0.25, 0.25]
+bell_sharpness = 0.1
+bell_scaling = 5.0
+matern_phi = 3.5
+stddev = 0.5
