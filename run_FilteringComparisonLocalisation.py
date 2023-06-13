@@ -73,101 +73,190 @@ trials_init  = 5
 
 N_e = 50
 
-# %%
-kfmeans = np.zeros((len(iewpfQphis), trials_truth*trials_init, grid.nx*grid.ny))
-kfcovs = np.zeros((len(iewpfQphis), trials_truth*trials_init, grid.nx*grid.ny, grid.nx*grid.ny))
+# # %%
+# kfmeans = np.zeros((len(iewpfQphis), trials_truth*trials_init, grid.nx*grid.ny))
+# kfcovs = np.zeros((len(iewpfQphis), trials_truth*trials_init, grid.nx*grid.ny, grid.nx*grid.ny))
 
-states_iewpf = np.zeros((len(iewpfQphis), trials_truth*trials_init, grid.nx*grid.ny, N_e))
-states_letkf = np.zeros((len(iewpfQphis), trials_truth*trials_init, grid.nx*grid.ny, N_e))
+# states_iewpf = np.zeros((len(iewpfQphis), trials_truth*trials_init, grid.nx*grid.ny, N_e))
+# states_letkf = np.zeros((len(iewpfQphis), trials_truth*trials_init, grid.nx*grid.ny, N_e))
 
-# %%
-# Repeating ensemble runs
-for trial_model in range(len(iewpfQphis)):
+# # %%
+# # Repeating ensemble runs
+# for trial_model in range(len(iewpfQphis)):
 
-    for trail_truth in range(trials_truth):
-        # Truth
-        print("\nModel", trial_model, ", Truth", trail_truth)
-        observation.clear_observations()
+#     for trail_truth in range(trials_truth):
+#         # Truth
+#         print("\nModel", trial_model, ", Truth", trail_truth)
+#         observation.clear_observations()
 
-        statistics_truth = Statistics.Statistics(simulator, 1)
-        statistics_truth.set_prior(prior_args)
+#         statistics_truth = Statistics.Statistics(simulator, 1)
+#         statistics_truth.set_prior(prior_args)
 
-        for t in range(10):
-            statistics_truth.propagate(25)
-            observation.observe(statistics_truth.mean)
+#         for t in range(10):
+#             statistics_truth.propagate(25)
+#             observation.observe(statistics_truth.mean)
         
-        # KF 
-        print("KF DA")
-        statistics_kf = Statistics.Statistics(simulator, safe_history=True)
-        statistics_kf.set_prior(prior_args)
+#         # KF 
+#         print("KF DA")
+#         statistics_kf = Statistics.Statistics(simulator, safe_history=True)
+#         statistics_kf.set_prior(prior_args)
 
-        kalmanFilter = KalmanFilter.Kalman(statistics_kf, observation)
+#         kalmanFilter = KalmanFilter.Kalman(statistics_kf, observation)
+
+#         for t in range(observation.N_obs):
+#             statistics_kf.propagate(25)
+#             kalmanFilter.filter(statistics_kf.mean, statistics_kf.cov, observation.obses[t])
+
+
+#         for trial_init in range(trials_init):
+#             print("\nModel", trial_model, ", Truth", trail_truth, ", Init", trial_init)
+
+#             # ETKF 
+#             # print("ETKF DA")
+#             # statistics_etkf = Statistics.Statistics(simulator, N_e, safe_history=True)
+#             # statistics_etkf.set_prior(prior_args)
+
+#             # etkFilter = ETKalmanFilter.ETKalman(statistics_etkf, observation)
+
+#             # for t in range(observation.N_obs):
+#             #     statistics_etkf.propagate(25)
+#             #     etkFilter.filter(statistics_etkf.ensemble.ensemble, observation.obses[t])
+
+#             # LETKF
+#             print("LETKF DA")
+#             statistics_letkf = Statistics.Statistics(simulator, N_e, safe_history=True)
+#             statistics_letkf.set_prior(prior_args)
+
+#             sletkFilter = SLETKalmanFilter.SLETKalman(statistics_letkf, observation, scale_rs[trial_model])
+
+#             for t in range(observation.N_obs):
+#                 statistics_letkf.propagate(25)
+#                 sletkFilter.filter(statistics_letkf.ensemble.ensemble, observation.obses[t])
+
+#             # IEWPF
+#             print("IEWPF DA")
+#             statistics_iewpf = Statistics.Statistics(simulator, N_e, safe_history=True)
+#             statistics_iewpf.set_prior(prior_args)
+
+#             iewpFilter = IEWParticleFilter.IEWParticle(statistics_iewpf, observation, beta=0.55, Q=iewpfQs[trial_model])
+
+#             for t in range(observation.N_obs):
+#                 statistics_iewpf.propagate(25, model_error=False)
+#                 iewpFilter.filter(statistics_iewpf.ensemble.ensemble, observation.obses[t])
+
+#             # MC
+#             # print("MC")
+#             # statistics_mc = Statistics.Statistics(simulator, N_e, safe_history=True)
+#             # statistics_mc.set_prior(prior_args)
+
+#             # for t in range(observation.N_obs):
+#             #     statistics_mc.propagate(25)
+
+
+#             # Comparison
+#             print("Storing")
+#             trial = trail_truth*trials_init + trial_init
+
+#             kfmeans[trial_model, trial] = statistics_kf.mean
+#             kfcovs[trial_model, trial]  = statistics_kf.cov
+
+#             states_iewpf[trial_model, trial] = statistics_iewpf.ensemble.ensemble
+#             states_letkf[trial_model, trial] = statistics_letkf.ensemble.ensemble
+
+#             print("done")
+
+
+# # %%
+# np.save("loc_KFmeans.npy", kfmeans)
+# np.save("loc_KFcovs.npy", kfcovs)
+# np.save("loc_IEWPFQ.npy", states_iewpf)
+# np.save("loc_LETKFr.npy", states_letkf)
+
+
+# %% 
+# Extreme cases 
+
+extremekfmeans = np.zeros((trials_truth*trials_init, grid.nx*grid.ny))
+extremekfcovs = np.zeros((trials_truth*trials_init, grid.nx*grid.ny, grid.nx*grid.ny))
+
+extremestates_iewpf = np.zeros((trials_truth*trials_init, grid.nx*grid.ny, N_e))
+extremestates_letkf = np.zeros((trials_truth*trials_init, grid.nx*grid.ny, N_e))
+
+# %%
+iewpfQ = Sampler.Sampler(grid, {"mean_upshift" : 0.0, "matern_phi" : 1.5, "stddev" : simulator.noise_stddev} ).cov
+
+# %%
+for trail_truth in range(trials_truth):
+    # Truth
+    observation.clear_observations()
+
+    statistics_truth = Statistics.Statistics(simulator, 1)
+    statistics_truth.set_prior(prior_args)
+
+    for t in range(10):
+        statistics_truth.propagate(25)
+        observation.observe(statistics_truth.mean)
+    
+    # KF 
+    print("KF DA")
+    statistics_kf = Statistics.Statistics(simulator, safe_history=True)
+    statistics_kf.set_prior(prior_args)
+
+    kalmanFilter = KalmanFilter.Kalman(statistics_kf, observation)
+
+    for t in range(observation.N_obs):
+        statistics_kf.propagate(25)
+        kalmanFilter.filter(statistics_kf.mean, statistics_kf.cov, observation.obses[t])
+
+
+    for trial_init in range(trials_init):
+        print("\nTruth", trail_truth, ", Init", trial_init)
+
+        # ETKF 
+        print("ETKF DA")
+        statistics_etkf = Statistics.Statistics(simulator, N_e, safe_history=True)
+        statistics_etkf.set_prior(prior_args)
+
+        etkFilter = ETKalmanFilter.ETKalman(statistics_etkf, observation)
 
         for t in range(observation.N_obs):
-            statistics_kf.propagate(25)
-            kalmanFilter.filter(statistics_kf.mean, statistics_kf.cov, observation.obses[t])
+            statistics_etkf.propagate(25)
+            etkFilter.filter(statistics_etkf.ensemble.ensemble, observation.obses[t])
+
+        # IEWPF
+        print("IEWPF DA")
+        statistics_iewpf = Statistics.Statistics(simulator, N_e, safe_history=True)
+        statistics_iewpf.set_prior(prior_args)
+
+        iewpFilter = IEWParticleFilter.IEWParticle(statistics_iewpf, observation, beta=0.55, Q=iewpfQ)
+
+        for t in range(observation.N_obs):
+            statistics_iewpf.propagate(25, model_error=False)
+            iewpFilter.filter(statistics_iewpf.ensemble.ensemble, observation.obses[t])
+
+        # MC
+        # print("MC")
+        # statistics_mc = Statistics.Statistics(simulator, N_e, safe_history=True)
+        # statistics_mc.set_prior(prior_args)
+
+        # for t in range(observation.N_obs):
+        #     statistics_mc.propagate(25)
 
 
-        for trial_init in range(trials_init):
-            print("\nModel", trial_model, ", Truth", trail_truth, ", Init", trial_init)
+        # Comparison
+        print("Storing")
+        trial = trail_truth*trials_init + trial_init
 
-            # ETKF 
-            # print("ETKF DA")
-            # statistics_etkf = Statistics.Statistics(simulator, N_e, safe_history=True)
-            # statistics_etkf.set_prior(prior_args)
+        extremekfmeans[trial] = statistics_kf.mean
+        extremekfcovs[trial]  = statistics_kf.cov
 
-            # etkFilter = ETKalmanFilter.ETKalman(statistics_etkf, observation)
+        extremestates_iewpf[trial] = statistics_iewpf.ensemble.ensemble
+        extremestates_letkf[trial] = statistics_etkf.ensemble.ensemble
 
-            # for t in range(observation.N_obs):
-            #     statistics_etkf.propagate(25)
-            #     etkFilter.filter(statistics_etkf.ensemble.ensemble, observation.obses[t])
-
-            # LETKF
-            print("LETKF DA")
-            statistics_letkf = Statistics.Statistics(simulator, N_e, safe_history=True)
-            statistics_letkf.set_prior(prior_args)
-
-            sletkFilter = SLETKalmanFilter.SLETKalman(statistics_letkf, observation, scale_rs[trial_model])
-
-            for t in range(observation.N_obs):
-                statistics_letkf.propagate(25)
-                sletkFilter.filter(statistics_letkf.ensemble.ensemble, observation.obses[t])
-
-            # IEWPF
-            print("IEWPF DA")
-            statistics_iewpf = Statistics.Statistics(simulator, N_e, safe_history=True)
-            statistics_iewpf.set_prior(prior_args)
-
-            iewpFilter = IEWParticleFilter.IEWParticle(statistics_iewpf, observation, beta=0.55, Q=iewpfQs[trial_model])
-
-            for t in range(observation.N_obs):
-                statistics_iewpf.propagate(25, model_error=False)
-                iewpFilter.filter(statistics_iewpf.ensemble.ensemble, observation.obses[t])
-
-            # MC
-            # print("MC")
-            # statistics_mc = Statistics.Statistics(simulator, N_e, safe_history=True)
-            # statistics_mc.set_prior(prior_args)
-
-            # for t in range(observation.N_obs):
-            #     statistics_mc.propagate(25)
-
-
-            # Comparison
-            print("Storing")
-            trial = trail_truth*trials_init + trial_init
-
-            kfmeans[trial_model, trial] = statistics_kf.mean
-            kfcovs[trial_model, trial]  = statistics_kf.cov
-
-            states_iewpf[trial_model, trial] = statistics_iewpf.ensemble.ensemble
-            states_letkf[trial_model, trial] = statistics_letkf.ensemble.ensemble
-
-            print("done")
-
+        print("done")
 
 # %%
-np.save("loc_KFmeans.npy", kfmeans)
-np.save("loc_KFcovs.npy", kfcovs)
-np.save("loc_IEWPFQ.npy", states_iewpf)
-np.save("loc_LETKFr.npy", states_letkf)
+np.save("loc_KFmeans_extreme.npy", extremekfmeans)
+np.save("loc_KFcovs_extreme.npy", extremekfcovs)
+np.save("loc_IEWPFQ_extreme.npy", extremestates_iewpf)
+np.save("loc_LETKFr_extreme.npy", extremestates_letkf)
