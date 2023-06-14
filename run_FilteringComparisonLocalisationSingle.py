@@ -30,7 +30,8 @@ print("Initialising...")
 timestamp = "2022_03_02-12_44_46"
 grid, simulator = Simulator.from_file(timestamp)
 
-observation = Observation.from_file(grid, timestamp)
+observation = Observation.Observation(grid)
+observation.set_positions([[25,15]])
 
 prior_args = Statistics.prior_args_from_file(timestamp)
 
@@ -152,7 +153,7 @@ file = "experiment_files/experiment_" + timestamp + "/localisation_results_" + r
 f = open(file, "a")
 f.write("IEWPF phis: " + ",".join([str(phi) for phi in iewpfQphis]))
 
-np.save("experiment_files/experiment_" + timestamp + "/loc_KFmeans_"+result_timestamp+".npy", kfmeans)
-np.save("experiment_files/experiment_" + timestamp + "/loc_KFcovs_"+result_timestamp+".npy", kfcovs)
-np.save("experiment_files/experiment_" + timestamp + "/loc_IEWPFQ_"+result_timestamp+".npy", states_iewpf)
-np.save("experiment_files/experiment_" + timestamp + "/loc_LETKFr_"+result_timestamp+".npy", states_letkf)
+np.save("experiment_files/experiment_" + timestamp + "/locSingle_KFmeans_"+result_timestamp+".npy", kfmeans)
+np.save("experiment_files/experiment_" + timestamp + "/locSingle_KFcovs_"+result_timestamp+".npy", kfcovs)
+np.save("experiment_files/experiment_" + timestamp + "/locSingle_IEWPFQ_"+result_timestamp+".npy", states_iewpf)
+np.save("experiment_files/experiment_" + timestamp + "/locSingle_LETKFr_"+result_timestamp+".npy", states_letkf)
