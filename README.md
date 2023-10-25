@@ -21,6 +21,8 @@ We recommend the use of a conda environment with Python 3.8 (tested) and the fol
 
 ## Introduction to code structure
 
+Utility functions are collected in the `.py`-files, but plots are generated in the `.ipynb`-notebooks.
+
 ### Forward model and truth generation
 The truth is handled as an ensemble of size 1, the corresponding experimental set-up and the observed values are stored to file in `/experiment_files/...`. The timestamp serves as a key for each set-up or observation, respectively. See `Truth.ipynb`.
 
@@ -35,3 +37,13 @@ The same critieria are evaulated for multiple repetitions in `run_FilteringCompa
 ## Reproducing resutls 
 
 The plots shown in the paper "Comparison of Ensemble-Based Data Assimilation Methods for Oceanographic Applications with Sparse Observations" are generated from this repository. 
+
+- Figure 3.1: `Truth.ipynb` (Note that no seed is selected, such that the truth will look different every single realisation) and the values are written to file with a certain time stamp in the `/experiment_files/...`-folder. 
+- Figure 3.2: `KFiltering.ipynb` (The truth is refered to by a time stamp.)
+- Figure 3.3, 3.4, 3.7: `FilteringComparison.ipynb` (The truth is refered to by a time stamp and results are again stochastic.)
+- Figure 3.5: `FilteringCoverage.ipynb`
+- Figure 3.6: `Spectrum.ipynb`
+- Figure 3.8, 3.9: Generate outputs with `run_FilteringComparisonLocalisation.py` and postprocess with `Localisation_PostProcessing.ipynb`
+- Figure 3.10: Generate outputs with `run_FilteringComparison.py`
+
+NB: The plots in the notebooks are only for reference and the final figures in the manuscript are generated with tikz such that they differ in style. 
